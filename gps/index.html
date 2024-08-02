@@ -5,7 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ubicación en Tiempo Real</title>
     <style>
-        /* Tus estilos CSS aquí */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -14,10 +48,6 @@
     </header>
     <div id="map"></div>
     <div class="container">
-        <div class="button-container">
-            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
-            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
-        </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
             <p id="statusDevice2">Dispositivo 2: Desconectado</p>
@@ -96,6 +126,9 @@
             // Inicializar la ubicación al cargar
             updateLocation1();
             updateLocation2();
+
+            // Llamar a updateAllLocations cada 30 segundos
+            setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
         }
 
         function updateLocation1() {
@@ -146,6 +179,11 @@
             }
         }
 
+        function updateAllLocations() {
+            updateLocation1();
+            updateLocation2();
+        }
+
         function updateMapCenter() {
             const pos1 = marker1.getPosition();
             const pos2 = marker2.getPosition();
@@ -155,9 +193,6 @@
                 map.setCenter({ lat: centerLat, lng: centerLng });
             }
         }
-
-        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
-        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
