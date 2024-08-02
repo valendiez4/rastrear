@@ -154,7 +154,7 @@
             setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
         }
 
-        function updateLocation(deviceId) {
+        function updateLocation(deviceId, name) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
@@ -165,8 +165,17 @@
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true,
-                        name: markers[deviceId].title
+                        name: name
                     });
+
+                    // Mostrar la ubicación en el mapa
+                    const marker = new google.maps.Marker({
+                        position: { lat: lat, lng: lng },
+                        map: map,
+                        title: name
+                    });
+                    markers[deviceId] = marker;
+                    map.setCenter({ lat: lat, lng: lng }); // Centrar el mapa en la nueva ubicación
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
                 }, {
@@ -185,7 +194,7 @@
                 const data = snapshot.val();
                 if (data) {
                     for (const id in data) {
-                        updateLocation(id);
+                        updateLocation(id, data[id].name);
                     }
                 }
             });
@@ -195,11 +204,8 @@
             const deviceName = document.getElementById('deviceName').value;
             if (deviceName) {
                 const newDeviceRef = push(ref(database, 'devices'));
-                set(newDeviceRef, {
-                    location: { lat: 0, lng: 0 },
-                    connected: false,
-                    name: deviceName
-                });
+                // Primero, obtenemos la ubicación y luego actualizamos la base de datos
+                updateLocation(newDeviceRef.key, deviceName);
                 document.getElementById('deviceName').value = ''; // Limpiar el campo de entrada
             }
         }
