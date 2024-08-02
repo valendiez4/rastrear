@@ -56,7 +56,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "TU_API_KEY",
@@ -82,13 +82,25 @@
                 zoom: 2
             });
 
+            // Actualizar la ubicación cada 10 segundos
+            setInterval(() => {
+                updateMap();
+            }, 10000);
+
+            // Iniciar la primera actualización
+            updateMap();
+        }
+
+        function updateMap() {
             // Referencia a todos los usuarios
             const usersRef = ref(database, 'users');
             onValue(usersRef, (snapshot) => {
                 const users = snapshot.val();
                 if (users) {
-                    // Limpiar el contenedor de estado
+                    // Limpiar el contenedor de estado y los marcadores
                     document.getElementById('statusContainer').innerHTML = '';
+                    Object.values(markers).forEach(marker => marker.setMap(null));
+                    Object.keys(markers).length = 0; // Limpiar el objeto de marcadores
 
                     let bounds = new google.maps.LatLngBounds(); // Para ajustar el mapa a la vista de todos los usuarios
 
@@ -126,14 +138,11 @@
                     map.fitBounds(bounds);
                 }
             });
-
-            // Iniciar la actualización de ubicación para el dispositivo actual
-            updateLocation();
         }
 
         function updateLocation() {
             if (navigator.geolocation) {
-                navigator.geolocation.watchPosition((position) => {
+                navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
@@ -154,7 +163,10 @@
             }
         }
 
-        window.onload = initMap;
+        window.onload = function() {
+            initMap();
+            updateLocation(); // Iniciar la actualización de ubicación para el dispositivo actual
+        }
     </script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
