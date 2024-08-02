@@ -24,8 +24,8 @@
         }
 
         #map {
-            width: 100%;
-            height: 500px;
+            flex: 1;
+            height: 100%;
         }
 
         .container {
@@ -36,21 +36,8 @@
             padding: 20px;
         }
 
-        .status {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-
-        .form-container {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        .button-container {
+            margin-top: 10px;
         }
 
         button {
@@ -73,6 +60,11 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -81,19 +73,22 @@
     </header>
     <div id="map"></div>
     <div class="container">
-        <div class="form-container">
-            <input type="text" id="deviceName" placeholder="Nombre del Dispositivo">
-            <button id="addDeviceButton">Agregar Dispositivo</button>
+        <div class="button-container">
+            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
+            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
         </div>
-        <div class="status" id="statusContainer"></div>
+        <div class="status">
+            <p id="statusDevice1">Dispositivo 1: Desconectado</p>
+            <p id="statusDevice2">Dispositivo 2: Desconectado</p>
+        </div>
     </div>
 
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
-
+        
         const firebaseConfig = {
             apiKey: "AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE",
             authDomain: "gps3-b4cda.firebaseapp.com",
@@ -110,8 +105,8 @@
         const database = getDatabase(app);
 
         let map;
-        const markers = {}; // Objeto para guardar los marcadores
-        const statusContainer = document.getElementById('statusContainer');
+        let marker1;
+        let marker2;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -119,71 +114,61 @@
                 zoom: 13
             });
 
-            // Escuchar cambios en la base de datos para todos los dispositivos
-            const devicesRef = ref(database, 'devices');
-            onValue(devicesRef, (snapshot) => {
+            marker1 = new google.maps.Marker({
+                position: { lat: 0, lng: 0 },
+                map: map,
+                title: 'Dispositivo 1'
+            });
+
+            marker2 = new google.maps.Marker({
+                position: { lat: 0, lng: 0 },
+                map: map,
+                title: 'Dispositivo 2'
+            });
+
+            // Escuchar cambios en la base de datos para device1
+            const locationRef1 = ref(database, 'device1');
+            onValue(locationRef1, (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
-                    // Limpiar los marcadores existentes
-                    for (const id in markers) {
-                        markers[id].setMap(null);
-                    }
-
-                    // Agregar nuevos marcadores
-                    statusContainer.innerHTML = ''; // Limpiar el estado anterior
-                    for (const id in data) {
-                        const device = data[id];
-                        if (device.location) {
-                            const location = device.location;
-                            const connected = device.connected;
-                            const marker = new google.maps.Marker({
-                                position: { lat: location.lat, lng: location.lng },
-                                map: map,
-                                title: device.name
-                            });
-                            markers[id] = marker; // Guardar el marcador en el objeto global
-
-                            const statusText = `Dispositivo ${device.name}: ${connected ? 'Conectado' : 'Desconectado'}`;
-                            statusContainer.innerHTML += `<p>${statusText}</p>`;
-                        }
-                    }
+                if (data && data.location) {
+                    const location = data.location;
+                    const connected = data.connected;
+                    marker1.setPosition({ lat: location.lat, lng: location.lng });
+                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
+                    updateMapCenter();
                 }
             });
 
-            // Llamar a updateAllLocations cada 30 segundos
-            setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
+            // Escuchar cambios en la base de datos para device2
+            const locationRef2 = ref(database, 'device2');
+            onValue(locationRef2, (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.location) {
+                    const location = data.location;
+                    const connected = data.connected;
+                    marker2.setPosition({ lat: location.lat, lng: location.lng });
+                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
+                    updateMapCenter();
+                }
+            });
+
+            // Inicializar la ubicación al cargar
+            updateLocation1();
+            updateLocation2();
         }
 
-        function updateLocation(deviceId, name) {
+        function updateLocation1() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, `devices/${deviceId}`);
+                    const locationRef = ref(database, 'device1');
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
-                        connected: true,
-                        name: name
-                    }).then(() => {
-                        console.log(`Dispositivo ${deviceId} actualizado con la ubicación ${lat}, ${lng}`);
-                    }).catch((error) => {
-                        console.error("Error al actualizar la ubicación: ", error);
+                        connected: true
                     });
-
-                    // Mostrar la ubicación en el mapa
-                    if (markers[deviceId]) {
-                        markers[deviceId].setPosition({ lat: lat, lng: lng });
-                    } else {
-                        const marker = new google.maps.Marker({
-                            position: { lat: lat, lng: lng },
-                            map: map,
-                            title: name
-                        });
-                        markers[deviceId] = marker; // Guardar el marcador en el objeto global
-                    }
-                    map.setCenter({ lat: lat, lng: lng }); // Centrar el mapa en la nueva ubicación
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
                 }, {
@@ -196,31 +181,42 @@
             }
         }
 
-        function updateAllLocations() {
-            const devicesRef = ref(database, 'devices');
-            onValue(devicesRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    for (const id in data) {
-                        updateLocation(id, data[id].name);
-                    }
-                }
-            });
-        }
+        function updateLocation2() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
 
-        function addDevice() {
-            const deviceName = document.getElementById('deviceName').value;
-            if (deviceName) {
-                const newDeviceRef = push(ref(database, 'devices'));
-                // Primero, obtenemos la ubicación y luego actualizamos la base de datos
-                updateLocation(newDeviceRef.key, deviceName);
-                document.getElementById('deviceName').value = ''; // Limpiar el campo de entrada
+                    // Actualizar la base de datos
+                    const locationRef = ref(database, 'device2');
+                    set(locationRef, {
+                        location: { lat: lat, lng: lng },
+                        connected: true
+                    });
+                }, (error) => {
+                    console.error("Error al obtener la ubicación: ", error);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
             } else {
-                alert("Por favor, ingrese el nombre del dispositivo.");
+                alert("La geolocalización no es compatible con este navegador.");
             }
         }
 
-        document.getElementById('addDeviceButton').addEventListener('click', addDevice);
+        function updateMapCenter() {
+            const pos1 = marker1.getPosition();
+            const pos2 = marker2.getPosition();
+            if (pos1 && pos2) {
+                const centerLat = (pos1.lat() + pos2.lat()) / 2;
+                const centerLng = (pos1.lng() + pos2.lng()) / 2;
+                map.setCenter({ lat: centerLat, lng: centerLng });
+            }
+        }
+
+        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
+        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
