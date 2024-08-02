@@ -76,10 +76,12 @@
         <div class="button-container">
             <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
             <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
+            <button id="addLocationButton">Agregar Ubicación</button>
         </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
             <p id="statusDevice2">Dispositivo 2: Desconectado</p>
+            <p id="statusDevice3">Nuevo Dispositivo: Desconectado</p>
         </div>
     </div>
 
@@ -107,6 +109,7 @@
         let map;
         let marker1;
         let marker2;
+        let marker3;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -124,6 +127,12 @@
                 position: { lat: 0, lng: 0 },
                 map: map,
                 title: 'Dispositivo 2'
+            });
+
+            marker3 = new google.maps.Marker({
+                position: { lat: 0, lng: 0 },
+                map: map,
+                title: 'Nuevo Dispositivo'
             });
 
             // Escuchar cambios en la base de datos para device1
@@ -151,6 +160,21 @@
                     if (location) {
                         marker2.setPosition({ lat: location.lat, lng: location.lng });
                         document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                        updateMapCenter();
+                    }
+                }
+            });
+
+            // Escuchar cambios en la base de datos para nuevo dispositivo
+            const locationRef3 = ref(database, 'newDevice');
+            onValue(locationRef3, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const location = data.location;
+                    const connected = data.connected;
+                    if (location) {
+                        marker3.setPosition({ lat: location.lat, lng: location.lng });
+                        document.getElementById('statusDevice3').textContent = `Nuevo Dispositivo: ${connected ? 'Conectado' : 'Desconectado'}`;
                         updateMapCenter();
                     }
                 }
@@ -209,22 +233,50 @@
             }
         }
 
+        function addLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Actualizar la base de datos
+                    const locationRef = ref(database, 'newDevice');
+                    set(locationRef, {
+                        location: { lat: lat, lng: lng },
+                        connected: true
+                    });
+                }, (error) => {
+                    console.error("Error al obtener la ubicación: ", error);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            } else {
+                alert("La geolocalización no es compatible con este navegador.");
+            }
+        }
+
         function updateMapCenter() {
             const pos1 = marker1.getPosition();
             const pos2 = marker2.getPosition();
-            const lat1 = pos1 ? pos1.lat() : 0;
-            const lng1 = pos1 ? pos1.lng() : 0;
-            const lat2 = pos2 ? pos2.lat() : 0;
-            const lng2 = pos2 ? pos2.lng() : 0;
+            const pos3 = marker3.getPosition();
 
-            const centerLat = (lat1 + lat2) / 2;
-            const centerLng = (lng1 + lng2) / 2;
+            const latSum = (pos1 ? pos1.lat() : 0) + (pos2 ? pos2.lat() : 0) + (pos3 ? pos3.lat() : 0);
+            const lngSum = (pos1 ? pos1.lng() : 0) + (pos2 ? pos2.lng() : 0) + (pos3 ? pos3.lng() : 0);
 
-            map.setCenter({ lat: centerLat, lng: centerLng });
+            const count = [pos1, pos2, pos3].filter(pos => pos).length;
+            if (count > 0) {
+                const lat = latSum / count;
+                const lng = lngSum / count;
+
+                map.setCenter({ lat, lng });
+            }
         }
 
         document.getElementById('updateButton1').addEventListener('click', updateLocation1);
         document.getElementById('updateButton2').addEventListener('click', updateLocation2);
+        document.getElementById('addLocationButton').addEventListener('click', addLocation);
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
