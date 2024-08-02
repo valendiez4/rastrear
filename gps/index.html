@@ -60,6 +60,11 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
+
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -72,16 +77,18 @@
             <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
             <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
         </div>
+        <div class="status">
+            <p id="statusDevice1">Dispositivo 1: Desconectado</p>
+            <p id="statusDevice2">Dispositivo 2: Desconectado</p>
+        </div>
     </div>
 
     <!-- Firebase -->
     <script type="module">
-        // Importar las funciones necesarias de Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
         
-        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE",
             authDomain: "gps3-b4cda.firebaseapp.com",
@@ -93,7 +100,6 @@
             measurementId: "G-DSKTR3YGZX"
         };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const database = getDatabase(app);
@@ -121,22 +127,36 @@
             });
 
             // Escuchar cambios en la base de datos para device1
-            const locationRef1 = ref(database, 'device1/location');
+            const locationRef1 = ref(database, 'device1');
             onValue(locationRef1, (snapshot) => {
-                const location = snapshot.val();
-                if (location) {
-                    marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    map.setCenter({ lat: (location.lat + (marker2.getPosition().lat() || 0)) / 2, lng: (location.lng + (marker2.getPosition().lng() || 0)) / 2 });
+                const data = snapshot.val();
+                if (data) {
+                    const location = data.location;
+                    const connected = data.connected;
+                    if (location) {
+                        marker1.setPosition({ lat: location.lat, lng: location.lng });
+                        document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                        if (connected) {
+                            map.setCenter({ lat: (location.lat + (marker2.getPosition().lat() || 0)) / 2, lng: (location.lng + (marker2.getPosition().lng() || 0)) / 2 });
+                        }
+                    }
                 }
             });
 
             // Escuchar cambios en la base de datos para device2
-            const locationRef2 = ref(database, 'device2/location');
+            const locationRef2 = ref(database, 'device2');
             onValue(locationRef2, (snapshot) => {
-                const location = snapshot.val();
-                if (location) {
-                    marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    map.setCenter({ lat: (marker1.getPosition().lat() || 0) + location.lat / 2, lng: (marker1.getPosition().lng() || 0) + location.lng / 2 });
+                const data = snapshot.val();
+                if (data) {
+                    const location = data.location;
+                    const connected = data.connected;
+                    if (location) {
+                        marker2.setPosition({ lat: location.lat, lng: location.lng });
+                        document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                        if (connected) {
+                            map.setCenter({ lat: (marker1.getPosition().lat() || 0) + location.lat / 2, lng: (marker1.getPosition().lng() || 0) + location.lng / 2 });
+                        }
+                    }
                 }
             });
 
@@ -152,10 +172,10 @@
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, 'device1/location');
+                    const locationRef = ref(database, 'device1');
                     set(locationRef, {
-                        lat: lat,
-                        lng: lng
+                        location: { lat: lat, lng: lng },
+                        connected: true
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
@@ -176,10 +196,10 @@
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, 'device2/location');
+                    const locationRef = ref(database, 'device2');
                     set(locationRef, {
-                        lat: lat,
-                        lng: lng
+                        location: { lat: lat, lng: lng },
+                        connected: true
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
