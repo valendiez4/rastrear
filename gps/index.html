@@ -25,7 +25,7 @@
 
         #map {
             width: 100%;
-            height: 500px; /* Ajusta según sea necesario */
+            height: 500px;
         }
 
         .container {
@@ -40,6 +40,39 @@
             margin-top: 20px;
             font-size: 18px;
         }
+
+        .form-container {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -48,18 +81,19 @@
     </header>
     <div id="map"></div>
     <div class="container">
-        <div class="status">
-            <p id="statusDevice1">Dispositivo 1: Desconectado</p>
-            <p id="statusDevice2">Dispositivo 2: Desconectado</p>
+        <div class="form-container">
+            <input type="text" id="deviceName" placeholder="Nombre del Dispositivo">
+            <button id="addDeviceButton">Agregar Dispositivo</button>
         </div>
+        <div class="status" id="statusContainer"></div>
     </div>
 
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
-        
+
         const firebaseConfig = {
             apiKey: "AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE",
             authDomain: "gps3-b4cda.firebaseapp.com",
@@ -76,97 +110,62 @@
         const database = getDatabase(app);
 
         let map;
-        let marker1;
-        let marker2;
+        const markers = {};
+        const statusContainer = document.getElementById('statusContainer');
 
         function initMap() {
-            console.log("Inicializando el mapa");
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 0, lng: 0 },
                 zoom: 13
             });
 
-            marker1 = new google.maps.Marker({
-                position: { lat: 0, lng: 0 },
-                map: map,
-                title: 'Dispositivo 1'
-            });
-
-            marker2 = new google.maps.Marker({
-                position: { lat: 0, lng: 0 },
-                map: map,
-                title: 'Dispositivo 2'
-            });
-
-            // Escuchar cambios en la base de datos para device1
-            const locationRef1 = ref(database, 'device1');
-            onValue(locationRef1, (snapshot) => {
+            // Escuchar cambios en la base de datos para todos los dispositivos
+            const devicesRef = ref(database, 'devices');
+            onValue(devicesRef, (snapshot) => {
                 const data = snapshot.val();
-                if (data && data.location) {
-                    const location = data.location;
-                    const connected = data.connected;
-                    marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
-                    updateMapCenter();
+                if (data) {
+                    // Limpiar los marcadores existentes
+                    for (const marker in markers) {
+                        markers[marker].setMap(null);
+                    }
+                    markers = {};
+
+                    // Agregar nuevos marcadores
+                    for (const id in data) {
+                        const device = data[id];
+                        if (device.location) {
+                            const location = device.location;
+                            const connected = device.connected;
+                            const marker = new google.maps.Marker({
+                                position: { lat: location.lat, lng: location.lng },
+                                map: map,
+                                title: device.name
+                            });
+                            markers[id] = marker;
+
+                            const statusText = `Dispositivo ${device.name}: ${connected ? 'Conectado' : 'Desconectado'}`;
+                            statusContainer.innerHTML += `<p>${statusText}</p>`;
+                        }
+                    }
                 }
             });
-
-            // Escuchar cambios en la base de datos para device2
-            const locationRef2 = ref(database, 'device2');
-            onValue(locationRef2, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.location) {
-                    const location = data.location;
-                    const connected = data.connected;
-                    marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
-                    updateMapCenter();
-                }
-            });
-
-            // Inicializar la ubicación al cargar
-            updateLocation1();
-            updateLocation2();
 
             // Llamar a updateAllLocations cada 30 segundos
             setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
         }
 
-        function updateLocation1() {
+        function updateLocation(deviceId) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, 'device1');
+                    const locationRef = ref(database, `devices/${deviceId}`);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
-                        connected: true
-                    });
-                }, (error) => {
-                    console.error("Error al obtener la ubicación: ", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                });
-            } else {
-                alert("La geolocalización no es compatible con este navegador.");
-            }
-        }
-
-        function updateLocation2() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // Actualizar la base de datos
-                    const locationRef = ref(database, 'device2');
-                    set(locationRef, {
-                        location: { lat: lat, lng: lng },
-                        connected: true
+                        connected: true,
+                        name: markers[deviceId].title
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
@@ -181,19 +180,31 @@
         }
 
         function updateAllLocations() {
-            updateLocation1();
-            updateLocation2();
+            const devicesRef = ref(database, 'devices');
+            onValue(devicesRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    for (const id in data) {
+                        updateLocation(id);
+                    }
+                }
+            });
         }
 
-        function updateMapCenter() {
-            const pos1 = marker1.getPosition();
-            const pos2 = marker2.getPosition();
-            if (pos1 && pos2) {
-                const centerLat = (pos1.lat() + pos2.lat()) / 2;
-                const centerLng = (pos1.lng() + pos2.lng()) / 2;
-                map.setCenter({ lat: centerLat, lng: centerLng });
+        function addDevice() {
+            const deviceName = document.getElementById('deviceName').value;
+            if (deviceName) {
+                const newDeviceRef = push(ref(database, 'devices'));
+                set(newDeviceRef, {
+                    location: { lat: 0, lng: 0 },
+                    connected: false,
+                    name: deviceName
+                });
+                document.getElementById('deviceName').value = ''; // Limpiar el campo de entrada
             }
         }
+
+        document.getElementById('addDeviceButton').addEventListener('click', addDevice);
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
