@@ -110,7 +110,7 @@
         const database = getDatabase(app);
 
         let map;
-        const markers = {};
+        const markers = {}; // Objeto para guardar los marcadores
         const statusContainer = document.getElementById('statusContainer');
 
         function initMap() {
@@ -125,10 +125,9 @@
                 const data = snapshot.val();
                 if (data) {
                     // Limpiar los marcadores existentes
-                    for (const marker in markers) {
-                        markers[marker].setMap(null);
+                    for (const id in markers) {
+                        markers[id].setMap(null);
                     }
-                    markers = {};
 
                     // Agregar nuevos marcadores
                     statusContainer.innerHTML = ''; // Limpiar el estado anterior
@@ -142,7 +141,7 @@
                                 map: map,
                                 title: device.name
                             });
-                            markers[id] = marker;
+                            markers[id] = marker; // Guardar el marcador en el objeto global
 
                             const statusText = `Dispositivo ${device.name}: ${connected ? 'Conectado' : 'Desconectado'}`;
                             statusContainer.innerHTML += `<p>${statusText}</p>`;
@@ -174,12 +173,16 @@
                     });
 
                     // Mostrar la ubicación en el mapa
-                    const marker = new google.maps.Marker({
-                        position: { lat: lat, lng: lng },
-                        map: map,
-                        title: name
-                    });
-                    markers[deviceId] = marker;
+                    if (markers[deviceId]) {
+                        markers[deviceId].setPosition({ lat: lat, lng: lng });
+                    } else {
+                        const marker = new google.maps.Marker({
+                            position: { lat: lat, lng: lng },
+                            map: map,
+                            title: name
+                        });
+                        markers[deviceId] = marker; // Guardar el marcador en el objeto global
+                    }
                     map.setCenter({ lat: lat, lng: lng }); // Centrar el mapa en la nueva ubicación
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
