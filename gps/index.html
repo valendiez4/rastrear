@@ -77,11 +77,13 @@
             <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
             <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
             <button id="addLocationButton">Agregar Ubicación</button>
+            <button id="addMyLocationButton">Agregar Mi Ubicación</button>
         </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
             <p id="statusDevice2">Dispositivo 2: Desconectado</p>
             <p id="statusDevice3">Nuevo Dispositivo: Desconectado</p>
+            <p id="statusMyLocation">Mi Ubicación: No agregada</p>
         </div>
     </div>
 
@@ -110,6 +112,7 @@
         let marker1;
         let marker2;
         let marker3;
+        let myMarker;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -133,6 +136,13 @@
                 position: { lat: 0, lng: 0 },
                 map: map,
                 title: 'Nuevo Dispositivo'
+            });
+
+            myMarker = new google.maps.Marker({
+                position: { lat: 0, lng: 0 },
+                map: map,
+                title: 'Mi Ubicación',
+                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' // Custom icon for personal location
             });
 
             // Escuchar cambios en la base de datos para device1
@@ -257,15 +267,38 @@
             }
         }
 
+        function addMyLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Actualizar el marcador personal
+                    myMarker.setPosition({ lat: lat, lng: lng });
+                    document.getElementById('statusMyLocation').textContent = 'Mi Ubicación: Actualizada';
+                    updateMapCenter();
+                }, (error) => {
+                    console.error("Error al obtener la ubicación: ", error);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            } else {
+                alert("La geolocalización no es compatible con este navegador.");
+            }
+        }
+
         function updateMapCenter() {
             const pos1 = marker1.getPosition();
             const pos2 = marker2.getPosition();
             const pos3 = marker3.getPosition();
+            const posMy = myMarker.getPosition();
 
-            const latSum = (pos1 ? pos1.lat() : 0) + (pos2 ? pos2.lat() : 0) + (pos3 ? pos3.lat() : 0);
-            const lngSum = (pos1 ? pos1.lng() : 0) + (pos2 ? pos2.lng() : 0) + (pos3 ? pos3.lng() : 0);
+            const latSum = (pos1 ? pos1.lat() : 0) + (pos2 ? pos2.lat() : 0) + (pos3 ? pos3.lat() : 0) + (posMy ? posMy.lat() : 0);
+            const lngSum = (pos1 ? pos1.lng() : 0) + (pos2 ? pos2.lng() : 0) + (pos3 ? pos3.lng() : 0) + (posMy ? posMy.lng() : 0);
 
-            const count = [pos1, pos2, pos3].filter(pos => pos).length;
+            const count = [pos1, pos2, pos3, posMy].filter(pos => pos).length;
             if (count > 0) {
                 const lat = latSum / count;
                 const lng = lngSum / count;
@@ -277,6 +310,7 @@
         document.getElementById('updateButton1').addEventListener('click', updateLocation1);
         document.getElementById('updateButton2').addEventListener('click', updateLocation2);
         document.getElementById('addLocationButton').addEventListener('click', addLocation);
+        document.getElementById('addMyLocationButton').addEventListener('click', addMyLocation);
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
