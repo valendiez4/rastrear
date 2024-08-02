@@ -48,9 +48,8 @@
     </header>
     <div id="map"></div>
     <div class="container">
-        <div class="status">
-            <p id="statusDevice1">Dispositivo 1: Desconectado</p>
-            <p id="statusDevice2">Dispositivo 2: Desconectado</p>
+        <div class="status" id="statusContainer">
+            <!-- Estado de los dispositivos se actualizará aquí -->
         </div>
     </div>
 
@@ -58,16 +57,16 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
-        
+
         const firebaseConfig = {
-            apiKey: "API_KEY_HERE",
-            authDomain: "PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://PROJECT_ID.firebaseio.com",
-            projectId: "PROJECT_ID",
-            storageBucket: "PROJECT_ID.appspot.com",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID",
-            measurementId: "MEASUREMENT_ID"
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://TU_PROJECT_ID.firebaseio.com",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_PROJECT_ID.appspot.com",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID",
+            measurementId: "TU_MEASUREMENT_ID"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -75,6 +74,7 @@
 
         let map;
         const markers = {};
+        const userId = 'user_' + Math.floor(Math.random() * 1000000); // Generar ID único
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -82,8 +82,8 @@
                 zoom: 2
             });
 
-            const locationRef = ref(database, 'users');
-            onValue(locationRef, (snapshot) => {
+            const usersRef = ref(database, 'users');
+            onValue(usersRef, (snapshot) => {
                 const users = snapshot.val();
                 if (users) {
                     for (const [userId, userData] of Object.entries(users)) {
@@ -101,13 +101,20 @@
                                 markers[userId].setPosition({ lat: location.lat, lng: location.lng });
                             }
 
-                            document.getElementById(`status${userId}`).textContent = `Dispositivo ${userId}: ${connected ? 'Conectado' : 'Desconectado'}`;
+                            const statusElement = document.getElementById(`status${userId}`);
+                            if (statusElement) {
+                                statusElement.textContent = `Dispositivo ${userId}: ${connected ? 'Conectado' : 'Desconectado'}`;
+                            } else {
+                                const newStatusElement = document.createElement('p');
+                                newStatusElement.id = `status${userId}`;
+                                newStatusElement.textContent = `Dispositivo ${userId}: ${connected ? 'Conectado' : 'Desconectado'}`;
+                                document.getElementById('statusContainer').appendChild(newStatusElement);
+                            }
                         }
                     }
                 }
             });
 
-            // Inicializar la ubicación al cargar
             watchLocation();
         }
 
@@ -117,9 +124,8 @@
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
-                    const userId = 'device' + Math.floor(Math.random() * 1000000); // Generar ID único
-                    const locationRef = ref(database, `users/${userId}`);
-                    set(locationRef, {
+                    const userRef = ref(database, `users/${userId}`);
+                    set(userRef, {
                         location: { lat: lat, lng: lng },
                         connected: true
                     });
