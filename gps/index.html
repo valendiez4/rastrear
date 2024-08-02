@@ -36,6 +36,31 @@
             padding: 20px;
         }
 
+        .button-container {
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
         .status {
             margin-top: 20px;
             font-size: 18px;
@@ -48,6 +73,10 @@
     </header>
     <div id="map"></div>
     <div class="container">
+        <div class="button-container">
+            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
+            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
+        </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
             <p id="statusDevice2">Dispositivo 2: Desconectado</p>
@@ -57,7 +86,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
         
         const firebaseConfig = {
@@ -97,18 +126,8 @@
                 title: 'Dispositivo 2'
             });
 
-            // Inicializar la visualización
-            updateMap();
-
-            // Actualizar la visualización cada 10 segundos
-            setInterval(updateMap, 10000);
-        }
-
-        function updateMap() {
-            // Referencias a los datos de los dispositivos
+            // Escuchar cambios en la base de datos para device1
             const locationRef1 = ref(database, 'device1');
-            const locationRef2 = ref(database, 'device2');
-
             onValue(locationRef1, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -117,10 +136,15 @@
                     if (location) {
                         marker1.setPosition({ lat: location.lat, lng: location.lng });
                         document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                        if (connected) {
+                            map.setCenter({ lat: (location.lat + (marker2.getPosition().lat() || 0)) / 2, lng: (location.lng + (marker2.getPosition().lng() || 0)) / 2 });
+                        }
                     }
                 }
             });
 
+            // Escuchar cambios en la base de datos para device2
+            const locationRef2 = ref(database, 'device2');
             onValue(locationRef2, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -129,32 +153,26 @@
                     if (location) {
                         marker2.setPosition({ lat: location.lat, lng: location.lng });
                         document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                        if (connected) {
+                            map.setCenter({ lat: (marker1.getPosition().lat() || 0) + location.lat / 2, lng: (marker1.getPosition().lng() || 0) + location.lng / 2 });
+                        }
                     }
                 }
             });
 
-            // Centrar el mapa en la posición promedio de los dos dispositivos
-            const lat1 = marker1.getPosition().lat();
-            const lng1 = marker1.getPosition().lng();
-            const lat2 = marker2.getPosition().lat();
-            const lng2 = marker2.getPosition().lng();
-
-            const centerLat = (lat1 + lat2) / 2;
-            const centerLng = (lng1 + lng2) / 2;
-
-            map.setCenter({ lat: centerLat, lng: centerLng });
+            // Inicializar la ubicación al cargar
+            updateLocation1();
+            updateLocation2();
         }
 
-        function updateLocation() {
+        function updateLocation1() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
-                    // Asignar un ID único para el dispositivo en la base de datos
-                    const userId = `device${Math.floor(Math.random() * 2) + 1}`; // Alternar entre device1 y device2
-
-                    const locationRef = ref(database, userId);
+                    // Actualizar la base de datos
+                    const locationRef = ref(database, 'device1');
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true
@@ -171,10 +189,35 @@
             }
         }
 
-        window.onload = function() {
-            initMap();
-            updateLocation(); // Iniciar la actualización de ubicación para el dispositivo actual
+        function updateLocation2() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    // Actualizar la base de datos
+                    const locationRef = ref(database, 'device2');
+                    set(locationRef, {
+                        location: { lat: lat, lng: lng },
+                        connected: true
+                    });
+                }, (error) => {
+                    console.error("Error al obtener la ubicación: ", error);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                });
+            } else {
+                alert("La geolocalización no es compatible con este navegador.");
+            }
         }
+
+        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
+        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
+
+        // Inicializar el mapa cuando la página se carga
+        window.onload = initMap;
     </script>
 
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
