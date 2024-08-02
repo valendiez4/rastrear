@@ -131,6 +131,7 @@
                     markers = {};
 
                     // Agregar nuevos marcadores
+                    statusContainer.innerHTML = ''; // Limpiar el estado anterior
                     for (const id in data) {
                         const device = data[id];
                         if (device.location) {
@@ -166,6 +167,10 @@
                         location: { lat: lat, lng: lng },
                         connected: true,
                         name: name
+                    }).then(() => {
+                        console.log(`Dispositivo ${deviceId} actualizado con la ubicación ${lat}, ${lng}`);
+                    }).catch((error) => {
+                        console.error("Error al actualizar la ubicación: ", error);
                     });
 
                     // Mostrar la ubicación en el mapa
@@ -207,6 +212,8 @@
                 // Primero, obtenemos la ubicación y luego actualizamos la base de datos
                 updateLocation(newDeviceRef.key, deviceName);
                 document.getElementById('deviceName').value = ''; // Limpiar el campo de entrada
+            } else {
+                alert("Por favor, ingrese el nombre del dispositivo.");
             }
         }
 
