@@ -24,8 +24,8 @@
         }
 
         #map {
-            flex: 1;
-            height: 100%;
+            width: 100%;
+            height: 500px; /* Ajusta según sea necesario */
         }
 
         .container {
@@ -80,6 +80,7 @@
         let marker2;
 
         function initMap() {
+            console.log("Inicializando el mapa");
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 0, lng: 0 },
                 zoom: 13
@@ -198,6 +199,6 @@
         window.onload = initMap;
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=TU_CLAVE_DE_API"></script>
 </body>
 </html>
