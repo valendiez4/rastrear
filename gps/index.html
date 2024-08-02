@@ -24,8 +24,8 @@
         }
 
         #map {
-            flex: 1;
-            height: 100%;
+            width: 100%;
+            height: 500px; /* Ajusta según sea necesario */
         }
 
         .container {
@@ -34,31 +34,6 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-        }
-
-        .button-container {
-            margin-top: 10px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
         }
 
         .status {
@@ -73,10 +48,6 @@
     </header>
     <div id="map"></div>
     <div class="container">
-        <div class="button-container">
-            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
-            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
-        </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
             <p id="statusDevice2">Dispositivo 2: Desconectado</p>
@@ -109,6 +80,7 @@
         let marker2;
 
         function initMap() {
+            console.log("Inicializando el mapa");
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 0, lng: 0 },
                 zoom: 13
@@ -134,7 +106,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     updateMapCenter();
                 }
             });
@@ -147,7 +119,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     updateMapCenter();
                 }
             });
@@ -155,6 +127,9 @@
             // Inicializar la ubicación al cargar
             updateLocation1();
             updateLocation2();
+
+            // Llamar a updateAllLocations cada 30 segundos
+            setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
         }
 
         function updateLocation1() {
@@ -205,6 +180,11 @@
             }
         }
 
+        function updateAllLocations() {
+            updateLocation1();
+            updateLocation2();
+        }
+
         function updateMapCenter() {
             const pos1 = marker1.getPosition();
             const pos2 = marker2.getPosition();
@@ -215,13 +195,10 @@
             }
         }
 
-        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
-        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
-
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=TU_CLAVE_DE_API"></script>
 </body>
 </html>
