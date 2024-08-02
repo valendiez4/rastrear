@@ -5,66 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ubicación en Tiempo Real</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-
-        header {
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #map {
-            flex: 1;
-            height: 100%;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .button-container {
-            margin-top: 10px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .status {
-            margin-top: 20px;
-            font-size: 18px;
-        }
+        /* Tus estilos CSS aquí */
     </style>
 </head>
 <body>
@@ -130,14 +71,12 @@
             const locationRef1 = ref(database, 'device1');
             onValue(locationRef1, (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
+                if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
-                    if (location) {
-                        marker1.setPosition({ lat: location.lat, lng: location.lng });
-                        document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
-                        updateMapCenter();
-                    }
+                    marker1.setPosition({ lat: location.lat, lng: location.lng });
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    updateMapCenter();
                 }
             });
 
@@ -145,23 +84,18 @@
             const locationRef2 = ref(database, 'device2');
             onValue(locationRef2, (snapshot) => {
                 const data = snapshot.val();
-                if (data) {
+                if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
-                    if (location) {
-                        marker2.setPosition({ lat: location.lat, lng: location.lng });
-                        document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
-                        updateMapCenter();
-                    }
+                    marker2.setPosition({ lat: location.lat, lng: location.lng });
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    updateMapCenter();
                 }
             });
 
             // Inicializar la ubicación al cargar
             updateLocation1();
             updateLocation2();
-
-            // Llamar a updateAllLocations cada 30 segundos
-            setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
         }
 
         function updateLocation1() {
@@ -212,23 +146,14 @@
             }
         }
 
-        function updateAllLocations() {
-            updateLocation1();
-            updateLocation2();
-        }
-
         function updateMapCenter() {
             const pos1 = marker1.getPosition();
             const pos2 = marker2.getPosition();
-            const lat1 = pos1 ? pos1.lat() : 0;
-            const lng1 = pos1 ? pos1.lng() : 0;
-            const lat2 = pos2 ? pos2.lat() : 0;
-            const lng2 = pos2 ? pos2.lng() : 0;
-
-            const centerLat = (lat1 + lat2) / 2;
-            const centerLng = (lng1 + lng2) / 2;
-
-            map.setCenter({ lat: centerLat, lng: centerLng });
+            if (pos1 && pos2) {
+                const centerLat = (pos1.lat() + pos2.lat()) / 2;
+                const centerLng = (pos1.lng() + pos2.lng()) / 2;
+                map.setCenter({ lat: centerLat, lng: centerLng });
+            }
         }
 
         document.getElementById('updateButton1').addEventListener('click', updateLocation1);
