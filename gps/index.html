@@ -56,7 +56,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, child, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "TU_API_KEY",
@@ -86,6 +86,9 @@
             onValue(usersRef, (snapshot) => {
                 const users = snapshot.val();
                 if (users) {
+                    // Limpiar el contenedor de estado
+                    document.getElementById('statusContainer').innerHTML = '';
+
                     for (const [userId, userData] of Object.entries(users)) {
                         const location = userData.location;
                         const connected = userData.connected;
@@ -144,6 +147,6 @@
         window.onload = initMap;
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=TU_CLAVE_API"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
 </body>
 </html>
