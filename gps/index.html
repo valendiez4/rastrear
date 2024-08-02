@@ -159,6 +159,9 @@
             // Inicializar la ubicación al cargar
             updateLocation1();
             updateLocation2();
+
+            // Llamar a updateAllLocations cada 30 segundos
+            setInterval(updateAllLocations, 30000); // 30000 ms = 30 s
         }
 
         function updateLocation1() {
@@ -207,6 +210,11 @@
             } else {
                 alert("La geolocalización no es compatible con este navegador.");
             }
+        }
+
+        function updateAllLocations() {
+            updateLocation1();
+            updateLocation2();
         }
 
         function updateMapCenter() {
