@@ -136,9 +136,7 @@
                     if (location) {
                         marker1.setPosition({ lat: location.lat, lng: location.lng });
                         document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
-                        if (connected) {
-                            map.setCenter({ lat: (location.lat + (marker2.getPosition().lat() || 0)) / 2, lng: (location.lng + (marker2.getPosition().lng() || 0)) / 2 });
-                        }
+                        updateMapCenter();
                     }
                 }
             });
@@ -153,9 +151,7 @@
                     if (location) {
                         marker2.setPosition({ lat: location.lat, lng: location.lng });
                         document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
-                        if (connected) {
-                            map.setCenter({ lat: (marker1.getPosition().lat() || 0) + location.lat / 2, lng: (marker1.getPosition().lng() || 0) + location.lng / 2 });
-                        }
+                        updateMapCenter();
                     }
                 }
             });
@@ -211,6 +207,20 @@
             } else {
                 alert("La geolocalización no es compatible con este navegador.");
             }
+        }
+
+        function updateMapCenter() {
+            const pos1 = marker1.getPosition();
+            const pos2 = marker2.getPosition();
+            const lat1 = pos1 ? pos1.lat() : 0;
+            const lng1 = pos1 ? pos1.lng() : 0;
+            const lat2 = pos2 ? pos2.lat() : 0;
+            const lng2 = pos2 ? pos2.lng() : 0;
+
+            const centerLat = (lat1 + lat2) / 2;
+            const centerLng = (lng1 + lng2) / 2;
+
+            map.setCenter({ lat: centerLat, lng: centerLng });
         }
 
         document.getElementById('updateButton1').addEventListener('click', updateLocation1);
