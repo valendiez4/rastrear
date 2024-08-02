@@ -90,6 +90,8 @@
                     // Limpiar el contenedor de estado
                     document.getElementById('statusContainer').innerHTML = '';
 
+                    let bounds = new google.maps.LatLngBounds(); // Para ajustar el mapa a la vista de todos los usuarios
+
                     for (const [userId, userData] of Object.entries(users)) {
                         const location = userData.location;
                         const connected = userData.connected;
@@ -114,8 +116,14 @@
                                 newStatusElement.textContent = `Dispositivo ${userId}: ${connected ? 'Conectado' : 'Desconectado'}`;
                                 document.getElementById('statusContainer').appendChild(newStatusElement);
                             }
+
+                            // Expandir el mapa para incluir todos los usuarios
+                            bounds.extend(new google.maps.LatLng(location.lat, location.lng));
                         }
                     }
+
+                    // Ajustar el mapa para mostrar todos los marcadores
+                    map.fitBounds(bounds);
                 }
             });
 
@@ -149,6 +157,6 @@
         window.onload = initMap;
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
 </body>
 </html>
