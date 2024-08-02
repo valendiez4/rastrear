@@ -105,7 +105,7 @@
         }
 
         function updateMap() {
-            // Referencia a los datos de los dispositivos
+            // Referencias a los datos de los dispositivos
             const locationRef1 = ref(database, 'device1');
             const locationRef2 = ref(database, 'device2');
 
@@ -132,6 +132,17 @@
                     }
                 }
             });
+
+            // Centrar el mapa en la posición promedio de los dos dispositivos
+            const lat1 = marker1.getPosition().lat();
+            const lng1 = marker1.getPosition().lng();
+            const lat2 = marker2.getPosition().lat();
+            const lng2 = marker2.getPosition().lng();
+
+            const centerLat = (lat1 + lat2) / 2;
+            const centerLng = (lng1 + lng2) / 2;
+
+            map.setCenter({ lat: centerLat, lng: centerLng });
         }
 
         function updateLocation() {
@@ -140,7 +151,8 @@
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
-                    const userId = `device${Math.random() > 0.5 ? 1 : 2}`; // Alternar entre dispositivo 1 y 2
+                    // Asignar un ID único para el dispositivo en la base de datos
+                    const userId = `device${Math.floor(Math.random() * 2) + 1}`; // Alternar entre device1 y device2
 
                     const locationRef = ref(database, userId);
                     set(locationRef, {
