@@ -82,6 +82,7 @@
                 zoom: 2
             });
 
+            // Referencia a todos los usuarios
             const usersRef = ref(database, 'users');
             onValue(usersRef, (snapshot) => {
                 const users = snapshot.val();
@@ -98,7 +99,7 @@
                                 markers[userId] = new google.maps.Marker({
                                     position: { lat: location.lat, lng: location.lng },
                                     map: map,
-                                    title: `User ${userId}`
+                                    title: `Dispositivo ${userId}`
                                 });
                             } else {
                                 markers[userId].setPosition({ lat: location.lat, lng: location.lng });
@@ -118,10 +119,11 @@
                 }
             });
 
-            watchLocation();
+            // Iniciar la actualización de ubicación para el dispositivo actual
+            updateLocation();
         }
 
-        function watchLocation() {
+        function updateLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.watchPosition((position) => {
                     const lat = position.coords.latitude;
@@ -147,6 +149,6 @@
         window.onload = initMap;
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY></script>
 </body>
 </html>
