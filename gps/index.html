@@ -134,8 +134,10 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
-                    updateMapCenter();
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    if (connected) {
+                        map.setCenter({ lat: location.lat, lng: location.lng });
+                    }
                 }
             });
 
@@ -147,14 +149,12 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
-                    updateMapCenter();
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    if (connected) {
+                        map.setCenter({ lat: location.lat, lng: location.lng });
+                    }
                 }
             });
-
-            // Inicializar la ubicación al cargar
-            updateLocation1();
-            updateLocation2();
         }
 
         function updateLocation1() {
@@ -202,16 +202,6 @@
                 });
             } else {
                 alert("La geolocalización no es compatible con este navegador.");
-            }
-        }
-
-        function updateMapCenter() {
-            const pos1 = marker1.getPosition();
-            const pos2 = marker2.getPosition();
-            if (pos1 && pos2) {
-                const centerLat = (pos1.lat() + pos2.lat()) / 2;
-                const centerLng = (pos1.lng() + pos2.lng()) / 2;
-                map.setCenter({ lat: centerLat, lng: centerLng });
             }
         }
 
