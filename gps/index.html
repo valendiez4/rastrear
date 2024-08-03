@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>Ubicación en Tiempo Real</title>
     <style>
         body {
@@ -135,7 +134,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     updateMapCenter();
                 }
             });
@@ -148,7 +147,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     updateMapCenter();
                 }
             });
@@ -223,7 +222,6 @@
         window.onload = initMap;
     </script>
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
-
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
 </body>
 </html>
