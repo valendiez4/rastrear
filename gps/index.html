@@ -74,8 +74,8 @@
     <div id="map"></div>
     <div class="container">
         <div class="button-container">
-            <button id="addButton1">Agregar Dispositivo 1</button>
-            <button id="addButton2">Agregar Dispositivo 2</button>
+            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
+            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
         </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
@@ -135,9 +135,7 @@
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
                     document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
-                    if (connected) {
-                        map.setCenter({ lat: location.lat, lng: location.lng });
-                    }
+                    updateMapCenter();
                 }
             });
 
@@ -150,9 +148,7 @@
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
                     document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
-                    if (connected) {
-                        map.setCenter({ lat: location.lat, lng: location.lng });
-                    }
+                    updateMapCenter();
                 }
             });
 
@@ -209,8 +205,18 @@
             }
         }
 
-        document.getElementById('addButton1').addEventListener('click', updateLocation1);
-        document.getElementById('addButton2').addEventListener('click', updateLocation2);
+        function updateMapCenter() {
+            const pos1 = marker1.getPosition();
+            const pos2 = marker2.getPosition();
+            if (pos1 && pos2) {
+                const centerLat = (pos1.lat() + pos2.lat()) / 2;
+                const centerLng = (pos1.lng() + pos2.lng()) / 2;
+                map.setCenter({ lat: centerLat, lng: centerLng });
+            }
+        }
+
+        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
+        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
