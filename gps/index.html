@@ -77,7 +77,6 @@
             <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
             <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
         </div>
-      
     </div>
 
     <!-- Firebase -->
@@ -129,9 +128,7 @@
                 const data = snapshot.val();
                 if (data && data.location) {
                     const location = data.location;
-                    const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     updateMapCenter();
                 }
             });
@@ -142,9 +139,7 @@
                 const data = snapshot.val();
                 if (data && data.location) {
                     const location = data.location;
-                    const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     updateMapCenter();
                 }
             });
