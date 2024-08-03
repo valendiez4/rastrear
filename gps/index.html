@@ -74,8 +74,10 @@
     <div id="map"></div>
     <div class="container">
         <div class="button-container">
-            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
-            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
+            <button id="addButton1">Agregar Dispositivo 1</button>
+            <button id="addButton2">Agregar Dispositivo 2</button>
+            <button id="stopButton1">Detener Dispositivo 1</button>
+            <button id="stopButton2">Detener Dispositivo 2</button>
         </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
@@ -107,6 +109,8 @@
         let map;
         let marker1;
         let marker2;
+        let intervalId1;
+        let intervalId2;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -135,7 +139,9 @@
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
                     document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
-                    updateMapCenter();
+                    if (connected) {
+                        map.setCenter({ lat: location.lat, lng: location.lng });
+                    }
                 }
             });
 
@@ -148,22 +154,21 @@
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
                     document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
-                    updateMapCenter();
+                    if (connected) {
+                        map.setCenter({ lat: location.lat, lng: location.lng });
+                    }
                 }
             });
-
-            // Inicializar la ubicación al cargar
-        
         }
 
-        function updateLocation1() {
+        function updateLocation(deviceNumber) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, 'device1');
+                    const locationRef = ref(database, `device${deviceNumber}`);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true
@@ -180,42 +185,31 @@
             }
         }
 
-        function updateLocation2() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
+        function startUpdatingLocation(deviceNumber) {
+            const updateFunction = () => updateLocation(deviceNumber);
+            const intervalId = setInterval(updateFunction, 1000);
 
-                    // Actualizar la base de datos
-                    const locationRef = ref(database, 'device2');
-                    set(locationRef, {
-                        location: { lat: lat, lng: lng },
-                        connected: true
-                    });
-                }, (error) => {
-                    console.error("Error al obtener la ubicación: ", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                });
-            } else {
-                alert("La geolocalización no es compatible con este navegador.");
+            if (deviceNumber === 1) {
+                intervalId1 = intervalId;
+            } else if (deviceNumber === 2) {
+                intervalId2 = intervalId;
             }
         }
 
-        function updateMapCenter() {
-            const pos1 = marker1.getPosition();
-            const pos2 = marker2.getPosition();
-            if (pos1 && pos2) {
-                const centerLat = (pos1.lat() + pos2.lat()) / 2;
-                const centerLng = (pos1.lng() + pos2.lng()) / 2;
-                map.setCenter({ lat: centerLat, lng: centerLng });
+        function stopUpdatingLocation(deviceNumber) {
+            if (deviceNumber === 1) {
+                clearInterval(intervalId1);
+                intervalId1 = null;
+            } else if (deviceNumber === 2) {
+                clearInterval(intervalId2);
+                intervalId2 = null;
             }
         }
 
-        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
-        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
+        document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
+        document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
+        document.getElementById('stopButton1').addEventListener('click', () => stopUpdatingLocation(1));
+        document.getElementById('stopButton2').addEventListener('click', () => stopUpdatingLocation(2));
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
