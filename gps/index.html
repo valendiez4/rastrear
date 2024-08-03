@@ -121,7 +121,8 @@
             }
             markers = {};
 
-            // Add new markers
+            // Add new markers and center the map
+            let newCenter = null;
             for (const deviceId in devices) {
                 const device = devices[deviceId];
                 if (device.location) {
@@ -132,9 +133,12 @@
                         title: `Dispositivo ${deviceId}`
                     });
                     markers[deviceId] = marker;
+                    newCenter = { lat: location.lat, lng: location.lng }; // Update center to the last device
                 }
             }
-            updateMapCenter();
+            if (newCenter) {
+                map.setCenter(newCenter); // Center the map to the last device added
+            }
         }
 
         function addDevice(deviceId) {
@@ -157,15 +161,6 @@
                 });
             } else {
                 alert("La geolocalización no es compatible con este navegador.");
-            }
-        }
-
-        function updateMapCenter() {
-            const allPositions = Object.values(markers).map(marker => marker.getPosition());
-            if (allPositions.length > 0) {
-                const centerLat = allPositions.reduce((sum, pos) => sum + pos.lat(), 0) / allPositions.length;
-                const centerLng = allPositions.reduce((sum, pos) => sum + pos.lng(), 0) / allPositions.length;
-                map.setCenter({ lat: centerLat, lng: centerLng });
             }
         }
 
