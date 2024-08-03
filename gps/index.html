@@ -60,11 +60,6 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
-
-        .status {
-            margin-top: 20px;
-            font-size: 18px;
-        }
     </style>
 </head>
 <body>
@@ -74,8 +69,8 @@
     <div id="map"></div>
     <div class="container">
         <div class="button-container">
-            <button id="updateButton1">Actualizar Ubicación Dispositivo 1</button>
-            <button id="updateButton2">Actualizar Ubicación Dispositivo 2</button>
+            <button id="addDeviceButton1">Agregar Dispositivo 1</button>
+            <button id="addDeviceButton2">Agregar Dispositivo 2</button>
         </div>
     </div>
 
@@ -101,8 +96,7 @@
         const database = getDatabase(app);
 
         let map;
-        let marker1;
-        let marker2;
+        let markers = {}; // Object to store markers by device ID
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -110,86 +104,49 @@
                 zoom: 13
             });
 
-            marker1 = new google.maps.Marker({
-                position: { lat: 0, lng: 0 },
-                map: map,
-                title: 'Dispositivo 1'
-            });
-
-            marker2 = new google.maps.Marker({
-                position: { lat: 0, lng: 0 },
-                map: map,
-                title: 'Dispositivo 2'
-            });
-
-            // Escuchar cambios en la base de datos para device1
-            const locationRef1 = ref(database, 'device1');
-            onValue(locationRef1, (snapshot) => {
+            // Escuchar cambios en la base de datos para todos los dispositivos
+            const devicesRef = ref(database, 'devices');
+            onValue(devicesRef, (snapshot) => {
                 const data = snapshot.val();
-                if (data && data.location) {
-                    const location = data.location;
-                    marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    updateMapCenter();
+                if (data) {
+                    updateMarkers(data);
                 }
             });
-
-            // Escuchar cambios en la base de datos para device2
-            const locationRef2 = ref(database, 'device2');
-            onValue(locationRef2, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.location) {
-                    const location = data.location;
-                    marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    updateMapCenter();
-                }
-            });
-
-            // Inicializar la ubicación al cargar
-            updateLocation1();
-            updateLocation2();
-
-            // Actualizar ubicación automáticamente cada 5 segundos
-            setInterval(() => {
-                updateLocation1();
-                updateLocation2();
-            }, 5000); // 5000 ms = 5 s
         }
 
-        function updateLocation1() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // Actualizar la base de datos
-                    const locationRef = ref(database, 'device1');
-                    set(locationRef, {
-                        location: { lat: lat, lng: lng },
-                        connected: true
-                    });
-                }, (error) => {
-                    console.error("Error al obtener la ubicación: ", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                });
-            } else {
-                alert("La geolocalización no es compatible con este navegador.");
+        function updateMarkers(devices) {
+            // Clear existing markers
+            for (const key in markers) {
+                markers[key].setMap(null);
             }
+            markers = {};
+
+            // Add new markers
+            for (const deviceId in devices) {
+                const device = devices[deviceId];
+                if (device.location) {
+                    const location = device.location;
+                    const marker = new google.maps.Marker({
+                        position: { lat: location.lat, lng: location.lng },
+                        map: map,
+                        title: `Dispositivo ${deviceId}`
+                    });
+                    markers[deviceId] = marker;
+                }
+            }
+            updateMapCenter();
         }
 
-        function updateLocation2() {
+        function addDevice(deviceId) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, 'device2');
+                    const locationRef = ref(database, `devices/${deviceId}`);
                     set(locationRef, {
-                        location: { lat: lat, lng: lng },
-                        connected: true
+                        location: { lat: lat, lng: lng }
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
@@ -204,17 +161,16 @@
         }
 
         function updateMapCenter() {
-            const pos1 = marker1.getPosition();
-            const pos2 = marker2.getPosition();
-            if (pos1 && pos2) {
-                const centerLat = (pos1.lat() + pos2.lat()) / 2;
-                const centerLng = (pos1.lng() + pos2.lng()) / 2;
+            const allPositions = Object.values(markers).map(marker => marker.getPosition());
+            if (allPositions.length > 0) {
+                const centerLat = allPositions.reduce((sum, pos) => sum + pos.lat(), 0) / allPositions.length;
+                const centerLng = allPositions.reduce((sum, pos) => sum + pos.lng(), 0) / allPositions.length;
                 map.setCenter({ lat: centerLat, lng: centerLng });
             }
         }
 
-        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
-        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
+        document.getElementById('addDeviceButton1').addEventListener('click', () => addDevice('device1'));
+        document.getElementById('addDeviceButton2').addEventListener('click', () => addDevice('device2'));
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
