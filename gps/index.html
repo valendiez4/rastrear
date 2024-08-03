@@ -155,6 +155,12 @@
             // Inicializar la ubicación al cargar
             updateLocation1();
             updateLocation2();
+
+            // Actualizar ubicación automáticamente cada 5 segundos
+            setInterval(() => {
+                updateLocation1();
+                updateLocation2();
+            }, 5000); // 5000 ms = 5 s
         }
 
         function updateLocation1() {
