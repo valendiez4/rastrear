@@ -60,11 +60,6 @@
             background-color: #ccc;
             cursor: not-allowed;
         }
-
-        .status {
-            margin-top: 20px;
-            font-size: 18px;
-        }
     </style>
 </head>
 <body>
@@ -132,9 +127,8 @@
                 const data = snapshot.val();
                 if (data && data.location) {
                     const location = data.location;
-                    const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: Conectado`;
                     updateMapCenter();
                 }
             });
@@ -145,50 +139,21 @@
                 const data = snapshot.val();
                 if (data && data.location) {
                     const location = data.location;
-                    const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: Conectado`;
                     updateMapCenter();
                 }
             });
-
-            // Inicializar la ubicación al cargar
-            updateLocation1();
-            updateLocation2();
         }
 
-        function updateLocation1() {
+        function updateLocation(deviceId) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, 'device1');
-                    set(locationRef, {
-                        location: { lat: lat, lng: lng },
-                        connected: true
-                    });
-                }, (error) => {
-                    console.error("Error al obtener la ubicación: ", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                });
-            } else {
-                alert("La geolocalización no es compatible con este navegador.");
-            }
-        }
-
-        function updateLocation2() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-
-                    // Actualizar la base de datos
-                    const locationRef = ref(database, 'device2');
+                    const locationRef = ref(database, deviceId);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true
@@ -215,8 +180,8 @@
             }
         }
 
-        document.getElementById('updateButton1').addEventListener('click', updateLocation1);
-        document.getElementById('updateButton2').addEventListener('click', updateLocation2);
+        document.getElementById('updateButton1').addEventListener('click', () => updateLocation('device1'));
+        document.getElementById('updateButton2').addEventListener('click', () => updateLocation('device2'));
 
         // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
