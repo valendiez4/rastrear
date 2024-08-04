@@ -102,7 +102,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
         
         const firebaseConfig = {
@@ -144,6 +144,9 @@
                 title: 'Dispositivo 2'
             });
 
+            marker1.setVisible(false);
+            marker2.setVisible(false);
+
             // Escuchar cambios en la base de datos para device1
             const locationRef1 = ref(database, 'device1');
             onValue(locationRef1, (snapshot) => {
@@ -151,13 +154,14 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
-                    marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
+                        marker1.setPosition({ lat: location.lat, lng: location.lng });
                         marker1.setVisible(true);
+                        document.getElementById('statusDevice1').textContent = 'Dispositivo 1: Conectado';
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     } else {
                         marker1.setVisible(false);
+                        document.getElementById('statusDevice1').textContent = 'Dispositivo 1: Desconectado';
                     }
                 }
             });
@@ -169,13 +173,14 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
-                    marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
+                        marker2.setPosition({ lat: location.lat, lng: location.lng });
                         marker2.setVisible(true);
+                        document.getElementById('statusDevice2').textContent = 'Dispositivo 2: Conectado';
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     } else {
                         marker2.setVisible(false);
+                        document.getElementById('statusDevice2').textContent = 'Dispositivo 2: Desconectado';
                     }
                 }
             });
@@ -214,6 +219,12 @@
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
             }
+
+            // Actualizar estado de conexión a true en la base de datos
+            const locationRef = ref(database, `device${deviceNumber}`);
+            update(locationRef, {
+                connected: true
+            });
         }
 
         function stopUpdatingLocation(deviceNumber) {
@@ -221,19 +232,17 @@
                 clearInterval(intervalId1);
                 intervalId1 = null;
                 marker1.setVisible(false);
-                const locationRef = ref(database, 'device1');
-                set(locationRef, {
-                    connected: false
-                });
             } else if (deviceNumber === 2) {
                 clearInterval(intervalId2);
                 intervalId2 = null;
                 marker2.setVisible(false);
-                const locationRef = ref(database, 'device2');
-                set(locationRef, {
-                    connected: false
-                });
             }
+
+            // Actualizar estado de conexión a false en la base de datos
+            const locationRef = ref(database, `device${deviceNumber}`);
+            update(locationRef, {
+                connected: false
+            });
         }
 
         document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
