@@ -156,6 +156,8 @@
                     if (connected) {
                         marker1.setVisible(true);
                         map.setCenter({ lat: location.lat, lng: location.lng });
+                    } else {
+                        marker1.setVisible(false);
                     }
                 }
             });
@@ -172,6 +174,8 @@
                     if (connected) {
                         marker2.setVisible(true);
                         map.setCenter({ lat: location.lat, lng: location.lng });
+                    } else {
+                        marker2.setVisible(false);
                     }
                 }
             });
