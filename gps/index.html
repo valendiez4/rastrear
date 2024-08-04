@@ -135,17 +135,16 @@
             marker1 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 1'
+                title: 'Dispositivo 1',
+                visible: false
             });
 
             marker2 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 2'
+                title: 'Dispositivo 2',
+                visible: false
             });
-
-            marker1.setVisible(false);
-            marker2.setVisible(false);
 
             // Escuchar cambios en la base de datos para device1
             const locationRef1 = ref(database, 'device1');
@@ -154,14 +153,11 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
+                    marker1.setPosition({ lat: location.lat, lng: location.lng });
+                    marker1.setVisible(connected);
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
-                        marker1.setPosition({ lat: location.lat, lng: location.lng });
-                        marker1.setVisible(true);
-                        document.getElementById('statusDevice1').textContent = 'Dispositivo 1: Conectado';
                         map.setCenter({ lat: location.lat, lng: location.lng });
-                    } else {
-                        marker1.setVisible(false);
-                        document.getElementById('statusDevice1').textContent = 'Dispositivo 1: Desconectado';
                     }
                 }
             });
@@ -173,14 +169,11 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
+                    marker2.setPosition({ lat: location.lat, lng: location.lng });
+                    marker2.setVisible(connected);
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
-                        marker2.setPosition({ lat: location.lat, lng: location.lng });
-                        marker2.setVisible(true);
-                        document.getElementById('statusDevice2').textContent = 'Dispositivo 2: Conectado';
                         map.setCenter({ lat: location.lat, lng: location.lng });
-                    } else {
-                        marker2.setVisible(false);
-                        document.getElementById('statusDevice2').textContent = 'Dispositivo 2: Desconectado';
                     }
                 }
             });
