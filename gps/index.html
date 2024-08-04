@@ -152,7 +152,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -167,7 +167,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -182,7 +182,7 @@
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, device${deviceNumber});
+                    const locationRef = ref(database, `device${deviceNumber}`);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true
