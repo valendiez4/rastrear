@@ -102,7 +102,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
         
         const firebaseConfig = {
@@ -135,15 +135,13 @@
             marker1 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 1',
-                visible: false
+                title: 'Dispositivo 1'
             });
 
             marker2 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 2',
-                visible: false
+                title: 'Dispositivo 2'
             });
 
             // Escuchar cambios en la base de datos para device1
@@ -154,8 +152,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    marker1.setVisible(connected);
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -170,8 +167,7 @@
                     const location = data.location;
                     const connected = data.connected;
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    marker2.setVisible(connected);
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -186,7 +182,7 @@
                     const lng = position.coords.longitude;
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, `device${deviceNumber}`);
+                    const locationRef = ref(database, device${deviceNumber});
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true
@@ -212,30 +208,16 @@
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
             }
-
-            // Actualizar estado de conexión a true en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: true
-            });
         }
 
         function stopUpdatingLocation(deviceNumber) {
             if (deviceNumber === 1) {
                 clearInterval(intervalId1);
                 intervalId1 = null;
-                marker1.setVisible(false);
             } else if (deviceNumber === 2) {
                 clearInterval(intervalId2);
                 intervalId2 = null;
-                marker2.setVisible(false);
             }
-
-            // Actualizar estado de conexión a false en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: false
-            });
         }
 
         document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
