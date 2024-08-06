@@ -5,22 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ubicación en Tiempo Real</title>
     <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        header {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
         #map {
             height: 400px;
             width: 100%;
         }
+
         .container {
             display: flex;
             justify-content: space-between;
             padding: 20px;
         }
-        .form-container {
+
+        .form-container, .status {
             flex: 1;
             padding: 10px;
         }
-        .status {
-            flex: 1;
+
+        button {
+            background-color: #343a40;
+            color: white;
+            border: none;
             padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #495057;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            button {
+                font-size: 14px;
+            }
+
+            input {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -115,8 +175,8 @@
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
                     marker1.setVisible(connected);
                     marker1.setLabel(name);
-                    infoWindow1.setContent(<div>${name}</div>);
-                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
+                    infoWindow1.setContent(`<div>${name}</div>`);
+                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -134,8 +194,8 @@
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
                     marker2.setVisible(connected);
                     marker2.setLabel(name);
-                    infoWindow2.setContent(<div>${name}</div>);
-                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
+                    infoWindow2.setContent(`<div>${name}</div>`);
+                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -157,11 +217,11 @@
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const name = document.getElementById(deviceName${deviceNumber}).value || Dispositivo ${deviceNumber};
+                    const name = document.getElementById(`deviceName${deviceNumber}`).value || `Dispositivo ${deviceNumber}`;
                     const userId = getUniqueIdentifier();
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, device${deviceNumber});
+                    const locationRef = ref(database, `device${deviceNumber}`);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true,
@@ -189,19 +249,19 @@
                 marker1.setVisible(true);
                 const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
                 marker1.setLabel(name);
-                infoWindow1.setContent(<div>${name}</div>);
+                infoWindow1.setContent(`<div>${name}</div>`);
                 infoWindow1.open(map, marker1);
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
                 marker2.setVisible(true);
                 const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
                 marker2.setLabel(name);
-                infoWindow2.setContent(<div>${name}</div>);
+                infoWindow2.setContent(`<div>${name}</div>`);
                 infoWindow2.open(map, marker2);
             }
 
             // Actualizar estado de conexión a true en la base de datos
-            const locationRef = ref(database, device${deviceNumber});
+            const locationRef = ref(database, `device${deviceNumber}`);
             update(locationRef, {
                 connected: true
             });
@@ -209,7 +269,7 @@
 
         function stopUpdatingLocation(deviceNumber) {
             const userId = getUniqueIdentifier();
-            const locationRef = ref(database, device${deviceNumber});
+            const locationRef = ref(database, `device${deviceNumber}`);
 
             onValue(locationRef, (snapshot) => {
                 const data = snapshot.val();
