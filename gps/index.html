@@ -6,18 +6,18 @@
     <title>Ubicación en Tiempo Real</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #f8f9fa;
-            color: #343a40;
+            background-color: #ffffff;
+            color: #202124;
         }
 
         header {
-            background-color: #343a40;
+            background-color: #4285f4;
             color: white;
             text-align: center;
             padding: 15px 0;
@@ -26,9 +26,9 @@
 
         #map {
             flex: 1;
-            height: 100%;
+            height: calc(100% - 160px);
             margin: 20px;
-            border: 1px solid #343a40;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
@@ -48,7 +48,7 @@
         }
 
         button {
-            background-color: #343a40;
+            background-color: #4285f4;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -60,12 +60,12 @@
         }
 
         button:hover {
-            background-color: #495057;
+            background-color: #357ae8;
             transform: scale(1.05);
         }
 
         button:disabled {
-            background-color: #adb5bd;
+            background-color: #e0e0e0;
             cursor: not-allowed;
         }
 
@@ -73,11 +73,20 @@
             margin-top: 20px;
             font-size: 18px;
             text-align: center;
-            color: #495057;
+            color: #5f6368;
         }
 
         p {
             margin: 0;
+        }
+
+        .name-input {
+            margin-bottom: 10px;
+        }
+
+        .name-input input {
+            padding: 5px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -87,6 +96,14 @@
     </header>
     <div id="map"></div>
     <div class="container">
+        <div class="name-input">
+            <label for="nameInput1">Nombre Dispositivo 1:</label>
+            <input type="text" id="nameInput1" placeholder="Ingrese el nombre del dispositivo 1">
+        </div>
+        <div class="name-input">
+            <label for="nameInput2">Nombre Dispositivo 2:</label>
+            <input type="text" id="nameInput2" placeholder="Ingrese el nombre del dispositivo 2">
+        </div>
         <div class="button-container">
             <button id="addButton1">Agregar Dispositivo 1</button>
             <button id="addButton2">Agregar Dispositivo 2</button>
@@ -106,14 +123,14 @@
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
         
         const firebaseConfig = {
-            apiKey: "AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE",
-            authDomain: "gps3-b4cda.firebaseapp.com",
-            databaseURL: "https://gps3-b4cda-default-rtdb.firebaseio.com",
-            projectId: "gps3-b4cda",
-            storageBucket: "gps3-b4cda.appspot.com",
-            messagingSenderId: "644152882568",
-            appId: "1:644152882568:web:a6e9b78911e6a059c8f63d",
-            measurementId: "G-DSKTR3YGZX"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -135,15 +152,13 @@
             marker1 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 1',
-                visible: false
+                title: 'Dispositivo 1'
             });
 
             marker2 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 2',
-                visible: false
+                title: 'Dispositivo 2'
             });
 
             // Escuchar cambios en la base de datos para device1
@@ -153,11 +168,14 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
+                    const name = data.name || 'Dispositivo 1';
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    marker1.setVisible(connected);
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    marker1.setTitle(name);
+                    document.getElementById('statusDevice1').textContent = `${name}: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
+                    } else {
+                        marker1.setMap(null);
                     }
                 }
             });
@@ -169,11 +187,14 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
+                    const name = data.name || 'Dispositivo 2';
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    marker2.setVisible(connected);
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    marker2.setTitle(name);
+                    document.getElementById('statusDevice2').textContent = `${name}: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
+                    } else {
+                        marker2.setMap(null);
                     }
                 }
             });
@@ -184,12 +205,15 @@
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    const nameInput = document.getElementById(`nameInput${deviceNumber}`);
+                    const name = nameInput ? nameInput.value : `Dispositivo ${deviceNumber}`;
 
                     // Actualizar la base de datos
                     const locationRef = ref(database, `device${deviceNumber}`);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
-                        connected: true
+                        connected: true,
+                        name: name
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
@@ -205,39 +229,31 @@
 
         function startUpdatingLocation(deviceNumber) {
             const updateFunction = () => updateLocation(deviceNumber);
-            const intervalId = setInterval(updateFunction, 3000); // Cambiado a 3000 ms
+            const intervalId = setInterval(updateFunction, 3000);
 
             if (deviceNumber === 1) {
                 intervalId1 = intervalId;
-                marker1.setVisible(true);
+                marker1.setMap(map);  // Mostrar el marcador nuevamente
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
-                marker2.setVisible(true);
+                marker2.setMap(map);  // Mostrar el marcador nuevamente
             }
-
-            // Actualizar estado de conexión a true en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: true
-            });
         }
 
         function stopUpdatingLocation(deviceNumber) {
             if (deviceNumber === 1) {
                 clearInterval(intervalId1);
                 intervalId1 = null;
-                marker1.setVisible(false);
+                update(ref(database, `device1`), {
+                    connected: false
+                });
             } else if (deviceNumber === 2) {
                 clearInterval(intervalId2);
                 intervalId2 = null;
-                marker2.setVisible(false);
+                update(ref(database, `device2`), {
+                    connected: false
+                });
             }
-
-            // Actualizar estado de conexión a false en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: false
-            });
         }
 
         document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
@@ -249,7 +265,6 @@
         window.onload = initMap;
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
 </body>
 </html>
-
