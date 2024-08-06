@@ -50,7 +50,7 @@
             padding: 20px;
         }
 
-        .button-container, .form-container {
+        .form-container {
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -119,16 +119,12 @@
     <div id="map"></div>
     <div class="container">
         <div class="form-container">
-            <div class="input-container">
-                <input type="text" id="deviceName1" placeholder="Nombre para Dispositivo 1">
-                <button id="addButton1">Agregar Dispositivo 1</button>
-                <button id="stopButton1">Detener Dispositivo 1</button>
-            </div>
-            <div class="input-container">
-                <input type="text" id="deviceName2" placeholder="Nombre para Dispositivo 2">
-                <button id="addButton2">Agregar Dispositivo 2</button>
-                <button id="stopButton2">Detener Dispositivo 2</button>
-            </div>
+            <input type="text" id="deviceName1" placeholder="Nombre para Dispositivo 1">
+            <button id="addButton1">Agregar Dispositivo 1</button>
+            <button id="stopButton1">Detener Dispositivo 1</button>
+            <input type="text" id="deviceName2" placeholder="Nombre para Dispositivo 2">
+            <button id="addButton2">Agregar Dispositivo 2</button>
+            <button id="stopButton2">Detener Dispositivo 2</button>
         </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
@@ -201,8 +197,11 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
+                    const name = data.name || 'Dispositivo 1';
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
                     marker1.setVisible(connected);
+                    marker1.setLabel(name);
+                    infoWindow1.setContent(`<div>${name}</div>`);
                     document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
@@ -217,8 +216,11 @@
                 if (data && data.location) {
                     const location = data.location;
                     const connected = data.connected;
+                    const name = data.name || 'Dispositivo 2';
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
                     marker2.setVisible(connected);
+                    marker2.setLabel(name);
+                    infoWindow2.setContent(`<div>${name}</div>`);
                     document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
@@ -232,12 +234,14 @@
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    const name = document.getElementById(`deviceName${deviceNumber}`).value || `Dispositivo ${deviceNumber}`;
 
                     // Actualizar la base de datos
                     const locationRef = ref(database, `device${deviceNumber}`);
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
-                        connected: true
+                        connected: true,
+                        name: name
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
