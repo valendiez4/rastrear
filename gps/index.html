@@ -79,6 +79,26 @@
         p {
             margin: 0;
         }
+
+        .form-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: 250px;
+        }
+
+        .input-container {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -87,11 +107,17 @@
     </header>
     <div id="map"></div>
     <div class="container">
-        <div class="button-container">
-            <button id="addButton1">Agregar Dispositivo 1</button>
-            <button id="addButton2">Agregar Dispositivo 2</button>
-            <button id="stopButton1">Detener Dispositivo 1</button>
-            <button id="stopButton2">Detener Dispositivo 2</button>
+        <div class="form-container">
+            <div class="input-container">
+                <input type="text" id="deviceName1" placeholder="Nombre para Dispositivo 1">
+                <button id="addButton1">Agregar Dispositivo 1</button>
+                <button id="stopButton1">Detener Dispositivo 1</button>
+            </div>
+            <div class="input-container">
+                <input type="text" id="deviceName2" placeholder="Nombre para Dispositivo 2">
+                <button id="addButton2">Agregar Dispositivo 2</button>
+                <button id="stopButton2">Detener Dispositivo 2</button>
+            </div>
         </div>
         <div class="status">
             <p id="statusDevice1">Dispositivo 1: Desconectado</p>
@@ -123,6 +149,8 @@
         let map;
         let marker1;
         let marker2;
+        let infoWindow1;
+        let infoWindow2;
         let intervalId1;
         let intervalId2;
 
@@ -135,15 +163,24 @@
             marker1 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 1',
                 visible: false
             });
 
             marker2 = new google.maps.Marker({
                 position: { lat: 0, lng: 0 },
                 map: map,
-                title: 'Dispositivo 2',
                 visible: false
+            });
+
+            infoWindow1 = new google.maps.InfoWindow();
+            infoWindow2 = new google.maps.InfoWindow();
+
+            marker1.addListener('click', () => {
+                infoWindow1.open(map, marker1);
+            });
+
+            marker2.addListener('click', () => {
+                infoWindow2.open(map, marker2);
             });
 
             // Escuchar cambios en la base de datos para device1
@@ -210,9 +247,15 @@
             if (deviceNumber === 1) {
                 intervalId1 = intervalId;
                 marker1.setVisible(true);
+                const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
+                marker1.setLabel(name);
+                infoWindow1.setContent(`<div>${name}</div>`);
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
                 marker2.setVisible(true);
+                const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
+                marker2.setLabel(name);
+                infoWindow2.setContent(`<div>${name}</div>`);
             }
 
             // Actualizar estado de conexión a true en la base de datos
@@ -227,10 +270,12 @@
                 clearInterval(intervalId1);
                 intervalId1 = null;
                 marker1.setVisible(false);
+                infoWindow1.close();
             } else if (deviceNumber === 2) {
                 clearInterval(intervalId2);
                 intervalId2 = null;
                 marker2.setVisible(false);
+                infoWindow2.close();
             }
 
             // Actualizar estado de conexión a false en la base de datos
