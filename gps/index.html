@@ -26,11 +26,20 @@
 
         #map {
             flex: 1;
-            height: 100%;
-            margin: 20px;
+            height: 0;
+            padding-bottom: 50%; /* Proporción de aspecto 16:9 */
+            position: relative;
             border: 1px solid #343a40;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #map iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         .container {
@@ -41,22 +50,26 @@
             padding: 20px;
         }
 
-        .button-container {
+        .button-container, .form-container {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-top: 20px;
+            width: 100%;
+            max-width: 500px;
         }
 
         button {
             background-color: #343a40;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px;
             font-size: 16px;
             cursor: pointer;
             border-radius: 5px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s, transform 0.3s;
+            width: 100%;
         }
 
         button:hover {
@@ -80,24 +93,22 @@
             margin: 0;
         }
 
-        .form-container {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
         input {
             padding: 10px;
             font-size: 16px;
             border: 1px solid #ced4da;
             border-radius: 5px;
-            margin-bottom: 10px;
-            width: 250px;
+            width: 100%;
         }
 
-        .input-container {
-            margin-bottom: 10px;
+        @media (max-width: 600px) {
+            button {
+                font-size: 14px;
+            }
+
+            input {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -250,12 +261,14 @@
                 const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
                 marker1.setLabel(name);
                 infoWindow1.setContent(`<div>${name}</div>`);
+                infoWindow1.open(map, marker1);
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
                 marker2.setVisible(true);
                 const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
                 marker2.setLabel(name);
                 infoWindow2.setContent(`<div>${name}</div>`);
+                infoWindow2.open(map, marker2);
             }
 
             // Actualizar estado de conexión a true en la base de datos
