@@ -5,110 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ubicación en Tiempo Real</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background-color: #f8f9fa;
-            color: #343a40;
-        }
-
-        header {
-            background-color: #343a40;
-            color: white;
-            text-align: center;
-            padding: 15px 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
         #map {
-            flex: 1;
-            height: 0;
-            padding-bottom: 50%; /* Proporción de aspecto 16:9 */
-            position: relative;
-            border: 1px solid #343a40;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        #map iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+            height: 400px;
             width: 100%;
-            height: 100%;
         }
-
         .container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             padding: 20px;
         }
-
         .form-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-
-        button {
-            background-color: #343a40;
-            color: white;
-            border: none;
+            flex: 1;
             padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s, transform 0.3s;
-            width: 100%;
         }
-
-        button:hover {
-            background-color: #495057;
-            transform: scale(1.05);
-        }
-
-        button:disabled {
-            background-color: #adb5bd;
-            cursor: not-allowed;
-        }
-
         .status {
-            margin-top: 20px;
-            font-size: 18px;
-            text-align: center;
-            color: #495057;
-        }
-
-        p {
-            margin: 0;
-        }
-
-        input {
+            flex: 1;
             padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            width: 100%;
-        }
-
-        @media (max-width: 600px) {
-            button {
-                font-size: 14px;
-            }
-
-            input {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
@@ -203,8 +115,8 @@
                     marker1.setPosition({ lat: location.lat, lng: location.lng });
                     marker1.setVisible(connected);
                     marker1.setLabel(name);
-                    infoWindow1.setContent(`<div>${name}</div>`);
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    infoWindow1.setContent(<div>${name}</div>);
+                    document.getElementById('statusDevice1').textContent = Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'};
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -222,8 +134,8 @@
                     marker2.setPosition({ lat: location.lat, lng: location.lng });
                     marker2.setVisible(connected);
                     marker2.setLabel(name);
-                    infoWindow2.setContent(`<div>${name}</div>`);
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
+                    infoWindow2.setContent(<div>${name}</div>);
+                    document.getElementById('statusDevice2').textContent = Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'};
                     if (connected) {
                         map.setCenter({ lat: location.lat, lng: location.lng });
                     }
@@ -231,19 +143,30 @@
             });
         }
 
+        function getUniqueIdentifier() {
+            let userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substring(2, 15);
+                sessionStorage.setItem('userId', userId);
+            }
+            return userId;
+        }
+
         function updateLocation(deviceNumber) {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const name = document.getElementById(`deviceName${deviceNumber}`).value || `Dispositivo ${deviceNumber}`;
+                    const name = document.getElementById(deviceName${deviceNumber}).value || Dispositivo ${deviceNumber};
+                    const userId = getUniqueIdentifier();
 
                     // Actualizar la base de datos
-                    const locationRef = ref(database, `device${deviceNumber}`);
+                    const locationRef = ref(database, device${deviceNumber});
                     set(locationRef, {
                         location: { lat: lat, lng: lng },
                         connected: true,
-                        name: name
+                        name: name,
+                        userId: userId
                     });
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
@@ -266,41 +189,52 @@
                 marker1.setVisible(true);
                 const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
                 marker1.setLabel(name);
-                infoWindow1.setContent(`<div>${name}</div>`);
+                infoWindow1.setContent(<div>${name}</div>);
                 infoWindow1.open(map, marker1);
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
                 marker2.setVisible(true);
                 const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
                 marker2.setLabel(name);
-                infoWindow2.setContent(`<div>${name}</div>`);
+                infoWindow2.setContent(<div>${name}</div>);
                 infoWindow2.open(map, marker2);
             }
 
             // Actualizar estado de conexión a true en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
+            const locationRef = ref(database, device${deviceNumber});
             update(locationRef, {
                 connected: true
             });
         }
 
         function stopUpdatingLocation(deviceNumber) {
-            if (deviceNumber === 1) {
-                clearInterval(intervalId1);
-                intervalId1 = null;
-                marker1.setVisible(false);
-                infoWindow1.close();
-            } else if (deviceNumber === 2) {
-                clearInterval(intervalId2);
-                intervalId2 = null;
-                marker2.setVisible(false);
-                infoWindow2.close();
-            }
+            const userId = getUniqueIdentifier();
+            const locationRef = ref(database, device${deviceNumber});
 
-            // Actualizar estado de conexión a false en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: false
+            onValue(locationRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.userId === userId) {
+                    if (deviceNumber === 1) {
+                        clearInterval(intervalId1);
+                        intervalId1 = null;
+                        marker1.setVisible(false);
+                        infoWindow1.close();
+                    } else if (deviceNumber === 2) {
+                        clearInterval(intervalId2);
+                        intervalId2 = null;
+                        marker2.setVisible(false);
+                        infoWindow2.close();
+                    }
+
+                    // Actualizar estado de conexión a false en la base de datos
+                    update(locationRef, {
+                        connected: false
+                    });
+                } else {
+                    alert("No tienes permiso para detener este dispositivo.");
+                }
+            }, {
+                onlyOnce: true
             });
         }
 
