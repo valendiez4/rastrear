@@ -107,8 +107,7 @@
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE",
@@ -122,86 +121,7 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
         const database = getDatabase(app);
-
-        let map;
-        let marker1;
-        let marker2;
-        let infoWindow1;
-        let infoWindow2;
-        let intervalId1;
-        let intervalId2;
-
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 0, lng: 0 },
-                zoom: 13
-            });
-
-            marker1 = new google.maps.Marker({
-                position: { lat: 0, lng: 0 },
-                map: map,
-                visible: false,
-                label: 'Dispositivo 1'
-            });
-
-            marker2 = new google.maps.Marker({
-                position: { lat: 0, lng: 0 },
-                map: map,
-                visible: false,
-                label: 'Dispositivo 2'
-            });
-
-            infoWindow1 = new google.maps.InfoWindow();
-            infoWindow2 = new google.maps.InfoWindow();
-
-            marker1.addListener('click', () => {
-                infoWindow1.open(map, marker1);
-            });
-
-            marker2.addListener('click', () => {
-                infoWindow2.open(map, marker2);
-            });
-
-            // Escuchar cambios en la base de datos para device1
-            const locationRef1 = ref(database, 'device1');
-            onValue(locationRef1, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.location) {
-                    const location = data.location;
-                    const connected = data.connected;
-                    const name = data.name || 'Dispositivo 1';
-                    marker1.setPosition({ lat: location.lat, lng: location.lng });
-                    marker1.setVisible(connected);
-                    marker1.setLabel(name);
-                    infoWindow1.setContent(`<div>${name}</div>`);
-                    document.getElementById('statusDevice1').textContent = `Dispositivo 1: ${connected ? 'Conectado' : 'Desconectado'}`;
-                    if (connected) {
-                        map.setCenter({ lat: location.lat, lng: location.lng });
-                    }
-                }
-            });
-
-            // Escuchar cambios en la base de datos para device2
-            const locationRef2 = ref(database, 'device2');
-            onValue(locationRef2, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.location) {
-                    const location = data.location;
-                    const connected = data.connected;
-                    const name = data.name || 'Dispositivo 2';
-                    marker2.setPosition({ lat: location.lat, lng: location.lng });
-                    marker2.setVisible(connected);
-                    marker2.setLabel(name);
-                    infoWindow2.setContent(`<div>${name}</div>`);
-                    document.getElementById('statusDevice2').textContent = `Dispositivo 2: ${connected ? 'Conectado' : 'Desconectado'}`;
-                    if (connected) {
-                        map.setCenter({ lat: location.lat, lng: location.lng });
-                    }
-                }
-            });
-        }
 
         function getUniqueIdentifier() {
             let userId = sessionStorage.getItem('userId');
@@ -272,8 +192,6 @@
         document.getElementById('stopButton2').addEventListener('click', () => {
             stopLocation(2);
         });
-
-        window.onload = initMap;
     </script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
 </body>
