@@ -123,76 +123,18 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        function getUniqueIdentifier() {
-            let userId = sessionStorage.getItem('userId');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substring(2, 15);
-                sessionStorage.setItem('userId', userId);
-            }
-            return userId;
-        }
-
-        function updateLocation(deviceNumber) {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const name = document.getElementById(`deviceName${deviceNumber}`).value || `Dispositivo ${deviceNumber}`;
-                    const userId = getUniqueIdentifier();
-
-                    // Actualizar la base de datos
-                    const locationRef = ref(database, `device${deviceNumber}`);
-                    set(locationRef, {
-                        location: { lat: lat, lng: lng },
-                        connected: true,
-                        name: name,
-                        userId: userId
-                    });
-
-                    // Guardar la información en localStorage para usar en el nuevo index.html
-                    localStorage.setItem(`device${deviceNumber}`, JSON.stringify({
-                        location: { lat: lat, lng: lng },
-                        name: name
-                    }));
-                }, (error) => {
-                    console.error("Error al obtener la ubicación: ", error);
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 5000,
-                    maximumAge: 0
-                });
-            } else {
-                alert("La geolocalización no está soportada en este navegador.");
-            }
-        }
-
-        function stopLocation(deviceNumber) {
-            // Detener la actualización de la ubicación
-            const locationRef = ref(database, `device${deviceNumber}`);
-            set(locationRef, {
-                connected: false
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: { lat: -34.6037, lng: -58.3816 } // Centro en Buenos Aires
             });
-
-            // Limpiar la información en localStorage
-            localStorage.removeItem(`device${deviceNumber}`);
         }
 
-        document.getElementById('addButton1').addEventListener('click', () => {
-            updateLocation(1);
-        });
-
-        document.getElementById('stopButton1').addEventListener('click', () => {
-            stopLocation(1);
-        });
-
-        document.getElementById('addButton2').addEventListener('click', () => {
-            updateLocation(2);
-        });
-
-        document.getElementById('stopButton2').addEventListener('click', () => {
-            stopLocation(2);
-        });
+        // Inicializar el mapa cuando la API de Google Maps se haya cargado
+        window.initMap = initMap;
     </script>
+
+    <!-- Cargar la API de Google Maps -->
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
 </body>
 </html>
