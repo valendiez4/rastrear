@@ -228,6 +228,12 @@
                         name: name,
                         userId: userId
                     });
+
+                    // Guardar la información en localStorage para usar en el nuevo index.html
+                    localStorage.setItem(`device${deviceNumber}`, JSON.stringify({
+                        location: { lat: lat, lng: lng },
+                        name: name
+                    }));
                 }, (error) => {
                     console.error("Error al obtener la ubicación: ", error);
                 }, {
@@ -236,77 +242,39 @@
                     maximumAge: 0
                 });
             } else {
-                alert("La geolocalización no es compatible con este navegador.");
+                alert("La geolocalización no está soportada en este navegador.");
             }
         }
 
-        function startUpdatingLocation(deviceNumber) {
-            const updateFunction = () => updateLocation(deviceNumber);
-            const intervalId = setInterval(updateFunction, 3000);
-
-            if (deviceNumber === 1) {
-                intervalId1 = intervalId;
-                marker1.setVisible(true);
-                const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
-                marker1.setLabel(name);
-                infoWindow1.setContent(`<div>${name}</div>`);
-                infoWindow1.open(map, marker1);
-            } else if (deviceNumber === 2) {
-                intervalId2 = intervalId;
-                marker2.setVisible(true);
-                const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
-                marker2.setLabel(name);
-                infoWindow2.setContent(`<div>${name}</div>`);
-                infoWindow2.open(map, marker2);
-            }
-
-            // Actualizar estado de conexión a true en la base de datos
+        function stopLocation(deviceNumber) {
+            // Detener la actualización de la ubicación
             const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: true
+            set(locationRef, {
+                connected: false
             });
+
+            // Limpiar la información en localStorage
+            localStorage.removeItem(`device${deviceNumber}`);
         }
 
-        function stopUpdatingLocation(deviceNumber) {
-            const userId = getUniqueIdentifier();
-            const locationRef = ref(database, `device${deviceNumber}`);
+        document.getElementById('addButton1').addEventListener('click', () => {
+            updateLocation(1);
+        });
 
-            onValue(locationRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.userId === userId) {
-                    if (deviceNumber === 1) {
-                        clearInterval(intervalId1);
-                        intervalId1 = null;
-                        marker1.setVisible(false);
-                        infoWindow1.close();
-                    } else if (deviceNumber === 2) {
-                        clearInterval(intervalId2);
-                        intervalId2 = null;
-                        marker2.setVisible(false);
-                        infoWindow2.close();
-                    }
+        document.getElementById('stopButton1').addEventListener('click', () => {
+            stopLocation(1);
+        });
 
-                    // Actualizar estado de conexión a false en la base de datos
-                    update(locationRef, {
-                        connected: false
-                    });
-                } else {
-                    alert("No tienes permiso para detener este dispositivo.");
-                }
-            }, {
-                onlyOnce: true
-            });
-        }
+        document.getElementById('addButton2').addEventListener('click', () => {
+            updateLocation(2);
+        });
 
-        document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
-        document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
-        document.getElementById('stopButton1').addEventListener('click', () => stopUpdatingLocation(1));
-        document.getElementById('stopButton2').addEventListener('click', () => stopUpdatingLocation(2));
+        document.getElementById('stopButton2').addEventListener('click', () => {
+            stopLocation(2);
+        });
 
-        // Inicializar el mapa cuando la página se carga
         window.onload = initMap;
     </script>
-
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
 </body>
 </html>
