@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -241,6 +240,8 @@
             }
         }
 
+        // La función startUpdatingLocation se llama cuando se presiona el botón "Agregar Dispositivo".
+        // Utiliza setInterval para actualizar la ubicación cada 3 segundos.
         function startUpdatingLocation(deviceNumber) {
             const updateFunction = () => updateLocation(deviceNumber);
             const intervalId = setInterval(updateFunction, 3000);
@@ -269,45 +270,29 @@
         }
 
         function stopUpdatingLocation(deviceNumber) {
-            const userId = getUniqueIdentifier();
+            if (deviceNumber === 1 && intervalId1) {
+                clearInterval(intervalId1);
+                intervalId1 = null;
+            } else if (deviceNumber === 2 && intervalId2) {
+                clearInterval(intervalId2);
+                intervalId2 = null;
+            }
+
+            // Actualizar estado de conexión a false en la base de datos
             const locationRef = ref(database, `device${deviceNumber}`);
-
-            onValue(locationRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.userId === userId) {
-                    if (deviceNumber === 1) {
-                        clearInterval(intervalId1);
-                        intervalId1 = null;
-                        marker1.setVisible(false);
-                        infoWindow1.close();
-                    } else if (deviceNumber === 2) {
-                        clearInterval(intervalId2);
-                        intervalId2 = null;
-                        marker2.setVisible(false);
-                        infoWindow2.close();
-                    }
-
-                    // Actualizar estado de conexión a false en la base de datos
-                    update(locationRef, {
-                        connected: false
-                    });
-                } else {
-                    alert("No tienes permiso para detener este dispositivo.");
-                }
-            }, {
-                onlyOnce: true
+            update(locationRef, {
+                connected: false
             });
         }
 
         document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
-        document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
         document.getElementById('stopButton1').addEventListener('click', () => stopUpdatingLocation(1));
+        document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
         document.getElementById('stopButton2').addEventListener('click', () => stopUpdatingLocation(2));
 
-        // Inicializar el mapa cuando la página se carga
+        // Cargar el mapa cuando el documento esté listo
         window.onload = initMap;
     </script>
-
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"" async defer></script>
 </body>
 </html>
