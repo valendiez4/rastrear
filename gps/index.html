@@ -241,34 +241,49 @@
         }
 
         function startUpdatingLocation(deviceNumber) {
-            const updateFunction = () => updateLocation(deviceNumber);
-            const intervalId = setInterval(updateFunction, 3000);
+            const button = document.getElementById(`addButton${deviceNumber}`);
+            button.disabled = true;
+
+            const stopButton = document.getElementById(`stopButton${deviceNumber}`);
+            stopButton.disabled = false;
+
+            const status = document.getElementById(`statusDevice${deviceNumber}`);
+            status.textContent = `Dispositivo ${deviceNumber}: Conectado`;
+
+            const intervalId = setInterval(() => {
+                updateLocation(deviceNumber);
+            }, 3000);
 
             if (deviceNumber === 1) {
                 intervalId1 = intervalId;
-                marker1.setVisible(true);
-                const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
-                document.getElementById('statusDevice1').textContent = `Dispositivo 1: Conectado (${name})`;
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
-                marker2.setVisible(true);
-                const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
-                document.getElementById('statusDevice2').textContent = `Dispositivo 2: Conectado (${name})`;
             }
         }
 
         function stopUpdatingLocation(deviceNumber) {
-            if (deviceNumber === 1 && intervalId1) {
+            const button = document.getElementById(`addButton${deviceNumber}`);
+            button.disabled = false;
+
+            const stopButton = document.getElementById(`stopButton${deviceNumber}`);
+            stopButton.disabled = true;
+
+            const status = document.getElementById(`statusDevice${deviceNumber}`);
+            status.textContent = `Dispositivo ${deviceNumber}: Desconectado`;
+
+            if (deviceNumber === 1) {
                 clearInterval(intervalId1);
-                intervalId1 = null;
-                marker1.setVisible(false);
-                document.getElementById('statusDevice1').textContent = 'Dispositivo 1: Desconectado';
-            } else if (deviceNumber === 2 && intervalId2) {
+            } else if (deviceNumber === 2) {
                 clearInterval(intervalId2);
-                intervalId2 = null;
-                marker2.setVisible(false);
-                document.getElementById('statusDevice2').textContent = 'Dispositivo 2: Desconectado';
             }
+
+            // Actualizar el estado de conexión en la base de datos
+            const userId = getUniqueIdentifier();
+            const locationRef = ref(database, `device${deviceNumber}`);
+            update(locationRef, {
+                connected: false,
+                userId: userId
+            });
         }
 
         document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
@@ -276,12 +291,10 @@
         document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
         document.getElementById('stopButton2').addEventListener('click', () => stopUpdatingLocation(2));
 
-        window.onload = () => {
-            initMap();
-        };
+        window.initMap = initMap;
     </script>
 
-    <!-- Google Maps API -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key="AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <!-- Cargar el API de Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE&callback=initMap" async defer></script>
 </body>
 </html>
