@@ -240,9 +240,8 @@
             }
         }
 
-        // La función startUpdatingLocation se llama cuando se presiona el botón "Agregar Dispositivo".
-        // Utiliza setInterval para actualizar la ubicación cada 3 segundos.
-        function startUpdatingLocation(deviceNumber) {
+       
+                function startUpdatingLocation(deviceNumber) {
             const updateFunction = () => updateLocation(deviceNumber);
             const intervalId = setInterval(updateFunction, 3000);
 
@@ -261,7 +260,6 @@
                 infoWindow2.setContent(`<div>${name}</div>`);
                 infoWindow2.open(map, marker2);
             }
-
             // Actualizar estado de conexión a true en la base de datos
             const locationRef = ref(database, `device${deviceNumber}`);
             update(locationRef, {
