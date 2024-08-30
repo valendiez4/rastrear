@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -249,65 +248,40 @@
                 intervalId1 = intervalId;
                 marker1.setVisible(true);
                 const name = document.getElementById('deviceName1').value || 'Dispositivo 1';
-                marker1.setLabel(name);
-                infoWindow1.setContent(`<div>${name}</div>`);
-                infoWindow1.open(map, marker1);
+                document.getElementById('statusDevice1').textContent = `Dispositivo 1: Conectado (${name})`;
             } else if (deviceNumber === 2) {
                 intervalId2 = intervalId;
                 marker2.setVisible(true);
                 const name = document.getElementById('deviceName2').value || 'Dispositivo 2';
-                marker2.setLabel(name);
-                infoWindow2.setContent(`<div>${name}</div>`);
-                infoWindow2.open(map, marker2);
+                document.getElementById('statusDevice2').textContent = `Dispositivo 2: Conectado (${name})`;
             }
-
-            // Actualizar estado de conexión a true en la base de datos
-            const locationRef = ref(database, `device${deviceNumber}`);
-            update(locationRef, {
-                connected: true
-            });
         }
 
         function stopUpdatingLocation(deviceNumber) {
-            const userId = getUniqueIdentifier();
-            const locationRef = ref(database, `device${deviceNumber}`);
-
-            onValue(locationRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.userId === userId) {
-                    if (deviceNumber === 1) {
-                        clearInterval(intervalId1);
-                        intervalId1 = null;
-                        marker1.setVisible(false);
-                        infoWindow1.close();
-                    } else if (deviceNumber === 2) {
-                        clearInterval(intervalId2);
-                        intervalId2 = null;
-                        marker2.setVisible(false);
-                        infoWindow2.close();
-                    }
-
-                    // Actualizar estado de conexión a false en la base de datos
-                    update(locationRef, {
-                        connected: false
-                    });
-                } else {
-                    alert("No tienes permiso para detener este dispositivo.");
-                }
-            }, {
-                onlyOnce: true
-            });
+            if (deviceNumber === 1 && intervalId1) {
+                clearInterval(intervalId1);
+                intervalId1 = null;
+                marker1.setVisible(false);
+                document.getElementById('statusDevice1').textContent = 'Dispositivo 1: Desconectado';
+            } else if (deviceNumber === 2 && intervalId2) {
+                clearInterval(intervalId2);
+                intervalId2 = null;
+                marker2.setVisible(false);
+                document.getElementById('statusDevice2').textContent = 'Dispositivo 2: Desconectado';
+            }
         }
 
         document.getElementById('addButton1').addEventListener('click', () => startUpdatingLocation(1));
-        document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
         document.getElementById('stopButton1').addEventListener('click', () => stopUpdatingLocation(1));
+        document.getElementById('addButton2').addEventListener('click', () => startUpdatingLocation(2));
         document.getElementById('stopButton2').addEventListener('click', () => stopUpdatingLocation(2));
 
-        // Inicializar el mapa cuando la página se carga
-        window.onload = initMap;
+        window.onload = () => {
+            initMap();
+        };
     </script>
 
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJsil_1ciTUTZn9Bt-he6QX5kBthyjWRY"></script>
+    <!-- Google Maps API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
 </body>
 </html>
