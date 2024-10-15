@@ -1,42 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa Admin</title>
-    <link rel="stylesheet" href="https://argob.github.io/poncho/poncho.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/cuerpo.css">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/mapa.css">
-    <link rel="icon" href="img/logo.ico" />
+    <title>Ubicación en Tiempo Real</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        header {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .form-container, .status {
+            flex: 1;
+            padding: 10px;
+        }
+
+        button {
+            background-color: #343a40;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #495057;
+            transform: scale(1.05);
+        }
+
+        button:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            button {
+                font-size: 14px;
+            }
+
+            input {
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-
-    <nav class="navbar navbar-expand-md ">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="admin.html">
-                <img class="colect" src="img/image(2).png" alt="Logo" style="text-align: center;">
-            </a>
-    
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse order-md-3" id="collapsibleNavbar">
-                <ul class="navbar-nav ml-auto">
-                    <li class="nav-item">
-                        <a class="btn btn-primary btn-success" href="admin.html">
-                            <span class="fa fa-arrow-left"></span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
+    <header>
+        <h1>Ubicación en Tiempo Real</h1>
+    </header>
     <div id="map"></div>
     <div class="container">
         <div class="form-container">
@@ -58,7 +109,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-analytics.js";
-
+        
         const firebaseConfig = {
             apiKey: "AIzaSyAxY5B7GLen2oUZWNkOqotsFYj1PeyHgKE",
             authDomain: "gps3-b4cda.firebaseapp.com",
@@ -189,8 +240,8 @@
             }
         }
 
-
-        function startUpdatingLocation(deviceNumber) {
+       
+                function startUpdatingLocation(deviceNumber) {
             const updateFunction = () => updateLocation(deviceNumber);
             const intervalId = setInterval(updateFunction, 3000);
 
